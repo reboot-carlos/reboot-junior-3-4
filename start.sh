@@ -1,20 +1,44 @@
 #!/usr/bin/env bash
-# Lance le projet en local, en mode "développement rapide" (sans Docker) :
+# Lance le projet en local.
+#
+# Par défaut : mode "développement rapide" (sans Docker)
 #   - installe les dépendances si besoin
 #   - démarre le backend (FastAPI) et le frontend (Vite) en même temps
 #   - arrête proprement les deux quand tu fais Ctrl+C
 #
-# Usage : ./start.sh
+# Usage :
+#   ./start.sh          # Mode local rapide (sans Docker)
+#   ./start.sh docker   # Mode Docker (comme sur Railway)
 #
-# (Pour tester le projet exactement comme sur Railway, avec Docker,
-# utilise plutôt ./local.sh)
+# (Pour tester avec docker-compose séparé, utilise ./local.sh)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/backend"
 FRONTEND_DIR="$SCRIPT_DIR/frontend"
+USE_DOCKER="${1:-}"
 
+# ── Mode Docker (comme sur Railway) ───────────────────────────────────────────
+if [ "$USE_DOCKER" = "docker" ]; then
+  if ! command -v docker &> /dev/null; then
+    printf '\n  \033[1;31mErreur :\033[0m Docker n'"'"'est pas installé.\n\n'
+    exit 1
+  fi
+
+  printf '\n  \033[1;36m→\033[0m Construction de l'"'"'image Docker...\n'
+  docker build -t dossier-etudiant-dev:latest "$SCRIPT_DIR"
+
+  printf '  \033[1;32m✓ Image construite\033[0m\n'
+  printf '\n  \033[1;32m→ Démarrage du conteneur →\033[0m \033[4mhttp://localhost:8080\033[0m\n\n'
+
+  # Lance le conteneur
+  docker run --rm -it -p 8080:8080 --env-file "$SCRIPT_DIR/.env" dossier-etudiant-dev:latest 2>/dev/null || \
+    docker run --rm -it -p 8080:8080 dossier-etudiant-dev:latest
+  exit 0
+fi
+
+# ── Mode local rapide (sans Docker) ───────────────────────────────────────────
 if [ -f "$SCRIPT_DIR/.env" ]; then
   set -a
   # shellcheck disable=SC1091

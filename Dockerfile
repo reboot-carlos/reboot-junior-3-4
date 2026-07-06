@@ -35,11 +35,12 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install nginx, supervisord, and curl for health checks
+# Install nginx, supervisord, gettext (for envsubst), and curl for health checks
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         nginx \
         supervisor \
+        gettext-base \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -57,16 +58,21 @@ COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 COPY backend/ /app
 
 # Copy nginx configuration (monorepo version that proxies to localhost:8000)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 # Copy supervisor configuration to manage both services
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Copy entrypoint script (handles PORT env var and starts services)
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Ensure nginx log directories exist
 RUN mkdir -p /var/log/nginx && \
     touch /var/log/nginx/access.log /var/log/nginx/error.log
 
+# Railway will assign PORT dynamically; default to 8080 for local dev
 EXPOSE 8080
 
-# Start both services via supervisord
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start services via entrypoint (reads PORT env var and starts supervisord)
+CMD ["/entrypoint.sh"]
