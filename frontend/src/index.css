@@ -135,25 +135,25 @@
   }
 }
 
-/* Animations pour les formules flottantes */
-.float-formula {
+/* Animations pour les formules flottantes - seulement au survol */
+.floating-formula:hover {
   animation: float 6s ease-in-out infinite;
 }
 
-.float-formula-2 {
-  animation: float 7s ease-in-out infinite 1s;
+.floating-formula:hover.float-formula-2 {
+  animation: float 7s ease-in-out infinite;
 }
 
-.float-formula-3 {
-  animation: float 8s ease-in-out infinite 2s;
+.floating-formula:hover.float-formula-3 {
+  animation: float 8s ease-in-out infinite;
 }
 
-.float-formula-4 {
-  animation: float 6.5s ease-in-out infinite 1.5s;
+.floating-formula:hover.float-formula-4 {
+  animation: float 6.5s ease-in-out infinite;
 }
 
-.float-formula-5 {
-  animation: float 7.5s ease-in-out infinite 2.5s;
+.floating-formula:hover.float-formula-5 {
+  animation: float 7.5s ease-in-out infinite;
 }
 
 @keyframes float {

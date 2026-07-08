@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import { FormulaEditor } from "./FormulaEditor";
 
 interface Theme {
   name: string;
@@ -39,6 +40,7 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [city, setCity] = useState<string>("Paris");
   const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [showFormulaEditor, setShowFormulaEditor] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
@@ -174,6 +176,11 @@ function App() {
     }));
   };
 
+  const handleInsertFormula = (formula: string) => {
+    setInputValue((prev) => prev + " " + formula + " ");
+    setShowFormulaEditor(false);
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !selectedTheme || !selectedSubcategory) return;
 
@@ -267,17 +274,6 @@ function App() {
                 Apprendre avec un tuteur IA expert
               </p>
 
-              {/* Formules autour du texte */}
-              <div className="my-12 space-y-3 text-blue-300 text-opacity-70">
-                <p className="text-lg font-light">∫ f(x)dx = F(x) + C</p>
-                <p className="text-lg font-light">E = mc²</p>
-                <p className="text-lg font-light">∑ₙ₌₁^∞ 1/n² = π²/6</p>
-              </div>
-
-              <p className="text-lg text-gray-300 flex items-center justify-center gap-2">
-                <span>💡</span>
-                <span>Appuyez sur n'importe quelle touche pour commencer</span>
-              </p>
             </div>
           </div>
         </div>
@@ -406,23 +402,6 @@ function App() {
 
         {/* Zone principale - Chat */}
       <div className={`flex-1 flex flex-col relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 rounded-xl overflow-hidden shadow-lg ${selectedTheme ? 'chat-area-enter' : ''}`}>
-        {/* Formules en fond du chat - coins uniquement */}
-        {selectedTheme && (
-          <div className="absolute inset-0 pointer-events-none opacity-5 overflow-hidden">
-            <div className="absolute -top-20 -left-32 text-4xl font-light text-blue-300 whitespace-nowrap">
-              ∫∫∫ f(x,y,z) dxdydz
-            </div>
-            <div className="absolute -top-24 -right-40 text-3xl font-light text-purple-300 whitespace-nowrap">
-              ∑ₙ₌₁^∞ aₙ cos(nθ)
-            </div>
-            <div className="absolute -bottom-20 -left-40 text-3xl font-light text-blue-300 whitespace-nowrap">
-              ∫ₐᵇ f(x)g'(x)dx
-            </div>
-            <div className="absolute -bottom-16 -right-48 text-4xl font-light text-purple-300 whitespace-nowrap">
-              e^(iπ) + 1 = 0
-            </div>
-          </div>
-        )}
         {/* En-tête */}
         {selectedTheme ? (
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-8 rounded-t-xl border-b border-purple-500">
@@ -438,7 +417,25 @@ function App() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6 text-white">
+        <div className="flex-1 overflow-y-auto p-8 space-y-6 text-white relative">
+          {/* Formules en fond de la zone de discussion */}
+          {selectedTheme && (
+            <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+              <div className="absolute top-10 left-10 text-3xl font-light text-blue-400 whitespace-nowrap">
+                ∫∫∫ f(x,y,z) dxdydz
+              </div>
+              <div className="absolute top-1/4 right-20 text-2xl font-light text-purple-400 whitespace-nowrap">
+                ∑ₙ₌₁^∞ aₙ cos(nθ)
+              </div>
+              <div className="absolute bottom-32 left-20 text-2xl font-light text-blue-400 whitespace-nowrap">
+                ∫ₐᵇ f(x)g'(x)dx
+              </div>
+              <div className="absolute bottom-20 right-32 text-3xl font-light text-purple-400 whitespace-nowrap">
+                e^(iπ) + 1 = 0
+              </div>
+            </div>
+          )}
+          <div className="relative z-10">
           {!selectedTheme ? (
             <div className="flex items-center justify-center h-full text-center px-6">
               <div className="max-w-2xl">
@@ -475,7 +472,7 @@ function App() {
                 className={`max-w-2xl px-6 py-4 ${
                   msg.role === "user"
                     ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl rounded-tr-lg shadow-lg"
-                    : "bg-gray-800 text-gray-100 rounded-2xl rounded-tl-lg border border-purple-500 border-opacity-30"
+                    : "bg-gray-100 text-gray-900 rounded-2xl rounded-tl-lg border border-purple-300 border-opacity-50 shadow-md"
                 }`}
               >
                 {msg.role === "user" ? (
@@ -498,18 +495,34 @@ function App() {
 
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-gray-200 text-black px-6 py-4 rounded-lg rounded-bl-none">
+              <div className="bg-gray-800 text-gray-300 px-6 py-4 rounded-lg rounded-bl-none">
                 <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-black rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-100"></div>
-                  <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-200"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
                 </div>
               </div>
             </div>
           )}
 
           <div ref={messagesEndRef} />
+          </div>
         </div>
+
+        {/* Bouton palette d'équation */}
+        <div className="p-4 border-t border-purple-500 border-opacity-30 bg-gradient-to-r from-slate-900 to-purple-900">
+          <button
+            onClick={() => setShowFormulaEditor(!showFormulaEditor)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition text-sm"
+          >
+            {showFormulaEditor ? "✕ Fermer palette d'équation" : "📐 Palette d'équation"}
+          </button>
+        </div>
+
+        {/* Éditeur de formules */}
+        {showFormulaEditor && (
+          <FormulaEditor onInsertFormula={handleInsertFormula} />
+        )}
 
         {/* Input */}
         <div className="bg-gradient-to-r from-slate-900 to-purple-900 border-t border-purple-500 border-opacity-30 rounded-b-xl p-6">
