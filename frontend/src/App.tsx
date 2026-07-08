@@ -1,29 +1,607 @@
-// Ceci est le VISAGE de ton projet (le frontend).
-// C'est ce que la personne qui utilise ton site voit et avec quoi elle
-// interagit (boutons, textes, images...). Le frontend appelle le backend
-// quand il a besoin de "réfléchir" à quelque chose.
+import { useState, useEffect, useRef } from "react";
+import Markdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
+
+interface Theme {
+  name: string;
+  description: string;
+  subcategories: string[];
+}
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface ConversationHistory {
+  id: string;
+  theme: string;
+  subcategory: string;
+  level: string;
+  timestamp: number;
+  messageCount: number;
+}
 
 function App() {
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
+    null
+  );
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [level, setLevel] = useState<string>("lycéen");
+  const [expandedTheme, setExpandedTheme] = useState<string | null>(null);
+  const [history, setHistory] = useState<ConversationHistory[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [city, setCity] = useState<string>("Paris");
+  const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
+
+  // Couleurs dégradées pour chaque thème
+  const themeColors: Record<string, string> = {
+    "Maths": "from-blue-500 to-blue-600",
+    "Physique": "from-cyan-500 to-blue-600",
+    "Chimie": "from-green-500 to-emerald-600",
+    "Technologie": "from-purple-500 to-pink-600",
+    "Littérature": "from-pink-500 to-rose-600",
+    "Vocabulaire": "from-amber-500 to-orange-600",
+    "Economie": "from-yellow-500 to-amber-600",
+    "Philosophie": "from-indigo-500 to-purple-600",
+    "Sciences du vivant et de la Terre": "from-green-500 to-teal-600",
+    "Comment marche l'IA": "from-violet-500 to-purple-600",
+  };
+
+  // Charger les thèmes et la localisation au démarrage
+  useEffect(() => {
+    const fetchThemes = async () => {
+      try {
+        const res = await fetch("/api/themes");
+        const data = await res.json();
+        setThemes(data.themes);
+      } catch (error) {
+        console.error("Erreur lors du chargement des thèmes:", error);
+      }
+    };
+
+    const detectCity = async () => {
+      try {
+        const response = await fetch("https://ipapi.co/json/");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.city) {
+            setCity(data.city);
+          }
+        }
+      } catch (error) {
+        // Garder la valeur par défaut "Paris"
+        console.debug("Géolocalisation non disponible");
+      }
+    };
+
+    fetchThemes();
+    detectCity();
+  }, []);
+
+  // Charger l'historique depuis localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("conversationHistory");
+    if (saved) {
+      setHistory(JSON.parse(saved));
+    }
+  }, []);
+
+  // Auto-scroll vers le dernier message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Sauvegarder l'historique quand une conversation commence
+  useEffect(() => {
+    if (selectedTheme && selectedSubcategory && messages.length > 0) {
+      const existingIndex = history.findIndex(
+        (h) => h.theme === selectedTheme && h.subcategory === selectedSubcategory
+      );
+
+      const newEntry: ConversationHistory = {
+        id: `${selectedTheme}-${selectedSubcategory}-${Date.now()}`,
+        theme: selectedTheme,
+        subcategory: selectedSubcategory,
+        level: level,
+        timestamp: Date.now(),
+        messageCount: messages.length,
+      };
+
+      let updated: ConversationHistory[];
+      if (existingIndex >= 0) {
+        updated = [...history];
+        updated[existingIndex] = newEntry;
+      } else {
+        updated = [newEntry, ...history];
+      }
+
+      setHistory(updated);
+      localStorage.setItem("conversationHistory", JSON.stringify(updated));
+    }
+  }, [messages]);
+
+  // Écouter les touches sur la page d'accueil
+  useEffect(() => {
+    const handleKeyPress = () => {
+      if (!selectedTheme && themes.length > 0) {
+        setSelectedTheme(themes[0].name);
+        if (themes[0].subcategories.length > 0) {
+          setSelectedSubcategory(themes[0].subcategories[0]);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [selectedTheme, themes]);
+
+
+  const handleDeleteHistoryEntry = (id: string) => {
+    const updated = history.filter((h) => h.id !== id);
+    setHistory(updated);
+    localStorage.setItem("conversationHistory", JSON.stringify(updated));
+  };
+
+  const handleFormulaHover = (id: string, event: React.MouseEvent<HTMLDivElement>) => {
+    const element = event.currentTarget;
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const offsetX = (event.clientX - centerX) * -0.5;
+    const offsetY = (event.clientY - centerY) * -0.5;
+
+    setFormulaPositions((prev) => ({
+      ...prev,
+      [id]: { x: offsetX, y: offsetY },
+    }));
+  };
+
+  const handleFormulaLeave = (id: string) => {
+    setFormulaPositions((prev) => ({
+      ...prev,
+      [id]: { x: 0, y: 0 },
+    }));
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || !selectedTheme || !selectedSubcategory) return;
+
+    const userMessage: Message = {
+      role: "user",
+      content: inputValue,
+    };
+
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInputValue("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          theme: selectedTheme,
+          subcategory: selectedSubcategory,
+          level: level,
+          city: city,
+          messages: newMessages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.content,
+      };
+      setMessages([...newMessages, assistantMessage]);
+    } catch (error) {
+      console.error("Erreur lors de l'appel au chat:", error);
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: "Erreur lors de la communication. Veuillez réessayer.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-800">Mon Projet 🚀</h1>
-        <p className="text-gray-500">
-          {/* TODO: remplace ce texte et construis ton interface ici */}
-          Modifie ce fichier (src/App.tsx) pour commencer à coder.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 text-gray-900 flex flex-col">
+      {!selectedTheme && (
+        /* Page d'accueil fullscreen */
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden z-40">
+          {/* Formules flottantes */}
+          <div className="absolute inset-0">
+            {[
+              { id: "formula1", text: "∫ f(x)dx", left: "10%", top: "15%", size: "4xl", animClass: "float-formula" },
+              { id: "formula2", text: "E=mc²", left: "80%", top: "20%", size: "3xl", animClass: "float-formula-2" },
+              { id: "formula3", text: "∑ aₙ", left: "20%", top: "70%", size: "3xl", animClass: "float-formula-3" },
+              { id: "formula4", text: "∇·F=0", left: "75%", top: "75%", size: "4xl", animClass: "float-formula-4" },
+              { id: "formula5", text: "π ≈ 3.14159", left: "50%", top: "10%", size: "2xl", animClass: "float-formula-5" },
+              { id: "formula6", text: "α + β = γ", left: "15%", top: "40%", size: "2xl", animClass: "float-formula" },
+              { id: "formula7", text: "🧬", left: "85%", top: "50%", size: "5xl", animClass: "float-formula-3" },
+              { id: "formula8", text: "√2 ≈ 1.414", left: "60%", top: "60%", size: "2xl", animClass: "float-formula-4" },
+            ].map((formula) => (
+              <div
+                key={formula.id}
+                onMouseMove={(e) => handleFormulaHover(formula.id, e)}
+                onMouseLeave={() => handleFormulaLeave(formula.id)}
+                style={{
+                  position: "absolute",
+                  left: formula.left,
+                  top: formula.top,
+                  transform: `translate(${formulaPositions[formula.id]?.x || 0}px, ${formulaPositions[formula.id]?.y || 0}px)`,
+                }}
+                className={`floating-formula ${formula.animClass} text-white opacity-70 hover:opacity-100 cursor-grab active:cursor-grabbing transition-all duration-300 select-none`}
+              >
+                <span className={`text-${formula.size} font-light`}>{formula.text}</span>
+              </div>
+            ))}
+          </div>
 
-        {/*
-          TODO: exemple d'idée pour appeler ton backend plus tard :
+          {/* Contenu central */}
+          <div className="relative z-10 h-full flex items-center justify-center">
+            <div className="text-center px-6">
+              <h1 className="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight drop-shadow-lg">
+                AI Lesson
+              </h1>
+              <p className="text-2xl md:text-3xl text-blue-200 mb-8 font-light">
+                Apprendre avec un tuteur IA expert
+              </p>
 
-          const res = await fetch("/api/example", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "Salut !" }),
-          });
-          const data = await res.json();
-        */}
+              {/* Formules autour du texte */}
+              <div className="my-12 space-y-3 text-blue-300 text-opacity-70">
+                <p className="text-lg font-light">∫ f(x)dx = F(x) + C</p>
+                <p className="text-lg font-light">E = mc²</p>
+                <p className="text-lg font-light">∑ₙ₌₁^∞ 1/n² = π²/6</p>
+              </div>
+
+              <p className="text-lg text-gray-300 flex items-center justify-center gap-2">
+                <span>💡</span>
+                <span>Appuyez sur n'importe quelle touche pour commencer</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* En-tête avec niveau (visible seulement quand on est en chat) */}
+      {selectedTheme && (
+      <div className="bg-white border-b border-gray-100 px-8 py-6 shadow-xs">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">AI Lesson</h1>
+            <p className="text-sm text-gray-500 mt-1">Tuteur IA Expert</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-sm transition-colors"
+              title="Historique des conversations"
+            >
+              📚 Historique {history.length > 0 && `(${history.length})`}
+            </button>
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+              <span className="text-base">📍</span>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ville"
+                className="bg-transparent text-sm focus:outline-none w-20"
+              />
+            </div>
+            <select
+              value={level}
+              onChange={(e) => {
+                setLevel(e.target.value);
+                setMessages([]);
+              }}
+              className="px-4 py-2 border border-gray-200 rounded-lg font-medium text-sm bg-white hover:bg-gray-50 transition-colors"
+            >
+              {levels.map((l) => (
+                <option key={l} value={l}>
+                  {l.charAt(0).toUpperCase() + l.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
+      )}
+
+
+      {/* Contenu principal */}
+      <div className="flex flex-1 gap-4 p-4 overflow-hidden">
+        {/* Sidebar - Navigation */}
+        {selectedTheme && (
+        <div className="w-72 bg-gray-900 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto">
+          {/* Accordions Thèmes */}
+          <div className="space-y-2">
+            {themes.map((theme) => (
+              <div key={theme.name}>
+                <button
+                  onClick={() => {
+                    setExpandedTheme(
+                      expandedTheme === theme.name ? null : theme.name
+                    );
+                    setSelectedTheme(theme.name);
+                    setSelectedSubcategory(
+                      theme.subcategories.length > 0
+                        ? theme.subcategories[0]
+                        : null
+                    );
+                    setMessages([]);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium bg-gradient-to-r text-white ${
+                    selectedTheme === theme.name
+                      ? `${themeColors[theme.name] || "from-blue-500 to-purple-600"} shadow-md translate-x-2`
+                      : `${themeColors[theme.name] || "from-blue-500 to-purple-600"} opacity-75 hover:opacity-100`
+                  }`}
+                >
+                  <span>{theme.name}</span>
+                  {theme.subcategories.length > 0 && (
+                    <span className="text-xs">
+                      {expandedTheme === theme.name ? "▼" : "▶"}
+                    </span>
+                  )}
+                </button>
+
+                {/* Sous-thèmes (Accordion) */}
+                {expandedTheme === theme.name &&
+                  theme.subcategories.length > 0 && (
+                    <div className="pl-4 mt-2 space-y-1 bg-gray-800 rounded-lg p-3">
+                      {theme.subcategories.map((sub) => (
+                        <button
+                          key={sub}
+                          onClick={() => {
+                            setSelectedSubcategory(sub);
+                            setMessages([]);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium bg-gradient-to-r from-blue-400 to-purple-500 text-white ${
+                            selectedSubcategory === sub
+                              ? "translate-x-2 shadow-md"
+                              : "opacity-75 hover:opacity-100"
+                          }`}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+              </div>
+            ))}
+          </div>
+
+
+          {/* Réinitialiser la conversation */}
+          {messages.length > 0 && (
+            <button
+              onClick={() => setMessages([])}
+              className="w-full px-3 py-2 mt-4 bg-gray-700 hover:bg-gray-600 rounded text-xs font-bold transition"
+            >
+              Nouvelle conversation
+            </button>
+          )}
+        </div>
+        )}
+
+        {/* Zone principale - Chat */}
+      <div className={`flex-1 flex flex-col relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 rounded-xl overflow-hidden shadow-lg ${selectedTheme ? 'chat-area-enter' : ''}`}>
+        {/* Formules en fond du chat - coins uniquement */}
+        {selectedTheme && (
+          <div className="absolute inset-0 pointer-events-none opacity-5 overflow-hidden">
+            <div className="absolute -top-20 -left-32 text-4xl font-light text-blue-300 whitespace-nowrap">
+              ∫∫∫ f(x,y,z) dxdydz
+            </div>
+            <div className="absolute -top-24 -right-40 text-3xl font-light text-purple-300 whitespace-nowrap">
+              ∑ₙ₌₁^∞ aₙ cos(nθ)
+            </div>
+            <div className="absolute -bottom-20 -left-40 text-3xl font-light text-blue-300 whitespace-nowrap">
+              ∫ₐᵇ f(x)g'(x)dx
+            </div>
+            <div className="absolute -bottom-16 -right-48 text-4xl font-light text-purple-300 whitespace-nowrap">
+              e^(iπ) + 1 = 0
+            </div>
+          </div>
+        )}
+        {/* En-tête */}
+        {selectedTheme ? (
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-8 rounded-t-xl border-b border-purple-500">
+            <h1 className="text-3xl font-bold tracking-tight">{selectedTheme}</h1>
+            {selectedSubcategory && (
+              <p className="text-blue-100 text-sm mt-2">{selectedSubcategory}</p>
+            )}
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white px-8 py-16 rounded-t-xl">
+            <h1 className="text-4xl font-bold tracking-tight">AILesson</h1>
+          </div>
+        )}
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-6 text-white">
+          {!selectedTheme ? (
+            <div className="flex items-center justify-center h-full text-center px-6">
+              <div className="max-w-2xl">
+                <h2 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900 tracking-tight">AILesson</h2>
+                <p className="text-2xl md:text-3xl font-light mb-8 text-gray-700">Commencez à travailler avec AILesson</p>
+                <p className="text-lg text-gray-600 mb-12">
+                  Choisissez un sujet et apprenez avec un tuteur IA expert en temps réel
+                </p>
+                <div className="flex items-center justify-center gap-2 text-gray-500">
+                  <span>💡</span>
+                  <span className="text-sm">Appuyez sur n'importe quelle touche pour commencer</span>
+                </div>
+              </div>
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <p className="text-lg font-light mb-2">Bienvenue !</p>
+                <p className="text-sm">
+                  Posez une question pour commencer votre cours.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`flex ${
+                msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-2xl px-6 py-4 ${
+                  msg.role === "user"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl rounded-tr-lg shadow-lg"
+                    : "bg-gray-800 text-gray-100 rounded-2xl rounded-tl-lg border border-purple-500 border-opacity-30"
+                }`}
+              >
+                {msg.role === "user" ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {msg.content}
+                  </p>
+                ) : (
+                  <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-2 prose-h1:my-3 prose-h2:my-2 prose-h3:my-1 prose-ul:my-2 prose-ol:my-2">
+                    <Markdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {msg.content}
+                    </Markdown>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-200 text-black px-6 py-4 rounded-lg rounded-bl-none">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-black rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-black rounded-full animate-bounce delay-200"></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="bg-gradient-to-r from-slate-900 to-purple-900 border-t border-purple-500 border-opacity-30 rounded-b-xl p-6">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !loading) {
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Posez votre question..."
+                disabled={loading || !selectedSubcategory}
+                className="flex-1 border border-purple-500 border-opacity-50 rounded-lg px-5 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition bg-gray-800"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={loading || !inputValue.trim() || !selectedSubcategory}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition text-lg"
+                title="Envoyer (Entrée)"
+              >
+                →
+              </button>
+            </div>
+        </div>
+        </div>
+      </div>
+
+      {/* Historique Panel */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex history-panel-enter">
+          <div className="bg-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold tracking-tight">Historique</h2>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="text-2xl font-bold hover:opacity-70 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {history.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">Aucune conversation sauvegardée</p>
+            ) : (
+              <div className="space-y-3">
+                {history.map((entry, idx) => (
+                  <div
+                    key={entry.id}
+                    className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 rounded-lg transition history-item-enter border border-gray-200 hover:border-blue-300"
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div
+                        onClick={() => {
+                          setSelectedTheme(entry.theme);
+                          setSelectedSubcategory(entry.subcategory);
+                          setLevel(entry.level);
+                          setShowHistory(false);
+                        }}
+                        className="flex-1 cursor-pointer"
+                      >
+                        <h3 className="font-bold text-sm">{entry.theme}</h3>
+                        <p className="text-xs text-gray-600">{entry.subcategory}</p>
+                        <div className="flex justify-between mt-2 text-xs text-gray-500">
+                          <span>{entry.level}</span>
+                          <span>{entry.messageCount} messages</span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(entry.timestamp).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteHistoryEntry(entry.id);
+                        }}
+                        className="ml-2 text-red-500 hover:text-red-700 transition font-bold"
+                        title="Supprimer"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
