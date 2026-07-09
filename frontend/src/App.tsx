@@ -275,10 +275,22 @@ function App() {
               <h1 className="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight drop-shadow-lg">
                 AI Lesson
               </h1>
-              <p className="text-2xl md:text-3xl text-blue-200 mb-8 font-light">
+              <p className="text-2xl md:text-3xl text-blue-200 mb-12 font-light">
                 Apprendre avec un tuteur IA expert
               </p>
-
+              <button
+                onClick={() => {
+                  if (themes.length > 0) {
+                    setSelectedTheme(themes[0].name);
+                    if (themes[0].subcategories.length > 0) {
+                      setSelectedSubcategory(themes[0].subcategories[0]);
+                    }
+                  }
+                }}
+                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-lg font-bold rounded-lg hover:shadow-2xl transition-all transform hover:scale-105"
+              >
+                ✨ Commencer
+              </button>
             </div>
           </div>
         </div>
