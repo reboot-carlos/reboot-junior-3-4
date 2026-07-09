@@ -33,7 +33,7 @@ function App() {
     null
   );
   const [isMultiThemeMode, setIsMultiThemeMode] = useState(false);
-  const [selectedThemes, setSelectedThemes] = useState<Array<{ theme: string; subcategory: string }>>([]);
+  const [selectedThemes, setSelectedThemes] = useState<Array<{ theme: string; subcategories: string[] }>>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -113,13 +113,13 @@ function App() {
   useEffect(() => {
     if (messages.length > 0 && (selectedTheme || isMultiThemeMode)) {
       const themeKey = isMultiThemeMode
-        ? selectedThemes.map(t => `${t.theme}-${t.subcategory}`).join("+")
+        ? selectedThemes.map(t => `${t.theme}-${t.subcategories.join(",")}`).join("+")
         : `${selectedTheme}-${selectedSubcategory}`;
 
       const newEntry: ConversationHistory = {
         id: `${themeKey}-${Date.now()}`,
         theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : (selectedTheme || ""),
-        subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : (selectedSubcategory || ""),
+        subcategory: isMultiThemeMode ? selectedThemes.flatMap(t => t.subcategories) : (selectedSubcategory || ""),
         level: level,
         timestamp: Date.now(),
         messageCount: messages.length,
@@ -172,11 +172,30 @@ function App() {
       // Mode multi-thèmes
       setIsMultiThemeMode(true);
       const themes = entry.theme as string[];
-      const subcats = entry.subcategory as string[];
+      const subcats = entry.subcategory as string | string[];
+      const subcatsArray = Array.isArray(subcats) ? subcats : [subcats];
+
+      // Grouper les sous-catégories par thème
+      const themeMap = new Map<string, string[]>();
+      themes.forEach((t, i) => {
+        if (!themeMap.has(t)) {
+          themeMap.set(t, []);
+        }
+      });
+
+      subcatsArray.forEach((sub, i) => {
+        if (i < themes.length) {
+          const theme = themes[i];
+          const subs = themeMap.get(theme) || [];
+          subs.push(sub);
+          themeMap.set(theme, subs);
+        }
+      });
+
       setSelectedThemes(
-        themes.map((t, i) => ({
+        themes.map(t => ({
           theme: t,
-          subcategory: subcats[i] || "",
+          subcategories: themeMap.get(t) || [],
         }))
       );
       // Réinitialiser les sélections simples
@@ -240,7 +259,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : selectedTheme,
-          subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : selectedSubcategory,
+          subcategory: isMultiThemeMode ? selectedThemes.flatMap(t => t.subcategories) : selectedSubcategory,
           level: level,
           city: city,
           messages: newMessages.map((msg) => ({
@@ -420,45 +439,51 @@ function App() {
                             if (isThemeSelected) {
                               setSelectedThemes(selectedThemes.filter(t => t.theme !== theme.name));
                             } else {
-                              const firstSub = theme.subcategories.length > 0 ? theme.subcategories[0] : "";
-                              setSelectedThemes([...selectedThemes, { theme: theme.name, subcategory: firstSub }]);
+                              setSelectedThemes([...selectedThemes, { theme: theme.name, subcategories: [] }]);
                             }
                             setMessages([]);
                           }}
                           className="rounded"
                         />
                         <span className="flex-1">{theme.name}</span>
-                        {isThemeSelected && selectedThemes.find(t => t.theme === theme.name) && (
+                        {isThemeSelected && selectedThemes.find(t => t.theme === theme.name)?.subcategories.length! > 0 && (
                           <span className="text-xs text-blue-200 truncate">
-                            ({selectedThemes.find(t => t.theme === theme.name)?.subcategory})
+                            ({selectedThemes.find(t => t.theme === theme.name)?.subcategories.join(", ")})
                           </span>
                         )}
                       </label>
 
-                      {/* Sous-thèmes en mode croisé */}
+                      {/* Sous-thèmes en mode croisé (checkboxes) */}
                       {isThemeSelected && theme.subcategories.length > 0 && (
                         <div className="pl-6 mt-2 space-y-1">
                           {theme.subcategories.map((sub) => {
                             const selectedThemeSub = selectedThemes.find(t => t.theme === theme.name);
-                            const isSubSelected = selectedThemeSub?.subcategory === sub;
+                            const isSubSelected = selectedThemeSub?.subcategories.includes(sub);
 
                             return (
-                              <button
+                              <label
                                 key={sub}
-                                onClick={() => {
-                                  setSelectedThemes(selectedThemes.map(t =>
-                                    t.theme === theme.name ? { ...t, subcategory: sub } : t
-                                  ));
-                                  setMessages([]);
-                                }}
-                                className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium ${
-                                  isSubSelected
-                                    ? "bg-gradient-to-r from-green-500 to-cyan-600 text-white"
-                                    : "bg-gray-700 hover:bg-gray-600 text-white"
-                                }`}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer bg-gray-700 hover:bg-gray-600 font-medium text-white"
                               >
-                                {sub}
-                              </button>
+                                <input
+                                  type="checkbox"
+                                  checked={isSubSelected || false}
+                                  onChange={() => {
+                                    setSelectedThemes(selectedThemes.map(t => {
+                                      if (t.theme === theme.name) {
+                                        const newSubs = isSubSelected
+                                          ? t.subcategories.filter(s => s !== sub)
+                                          : [...t.subcategories, sub];
+                                        return { ...t, subcategories: newSubs };
+                                      }
+                                      return t;
+                                    }));
+                                    setMessages([]);
+                                  }}
+                                  className="rounded"
+                                />
+                                <span>{sub}</span>
+                              </label>
                             );
                           })}
                         </div>
@@ -547,7 +572,7 @@ function App() {
                   {selectedThemes.map(t => t.theme).join(" + ")}
                 </h1>
                 <p className="text-blue-100 text-sm mt-2">
-                  {selectedThemes.map(t => t.subcategory).filter(Boolean).join(" • ")}
+                  {selectedThemes.flatMap(t => t.subcategories).join(" • ")}
                 </p>
               </>
             ) : (
@@ -735,7 +760,7 @@ function App() {
                           {Array.isArray(entry.theme) ? entry.theme.join(" + ") : entry.theme}
                         </h3>
                         <p className="text-xs text-gray-200">
-                          {Array.isArray(entry.subcategory) ? entry.subcategory.join(" • ") : entry.subcategory}
+                          {Array.isArray(entry.subcategory) ? entry.subcategory.join(" • ") : entry.subcategory || "—"}
                         </p>
                         <div className="flex justify-between mt-2 text-xs text-gray-300">
                           <span>{entry.level}</span>
