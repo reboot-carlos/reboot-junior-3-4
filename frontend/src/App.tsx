@@ -23,6 +23,7 @@ interface ConversationHistory {
   level: string;
   timestamp: number;
   messageCount: number;
+  messages: Message[];
 }
 
 function App() {
@@ -45,18 +46,21 @@ function App() {
 
   const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
 
-  // Couleurs dégradées pour chaque thème
+  // Couleur bleu-violet pour tous les thèmes
   const themeColors: Record<string, string> = {
-    "Maths": "from-blue-500 to-blue-600",
-    "Physique": "from-cyan-500 to-blue-600",
-    "Chimie": "from-green-500 to-emerald-600",
-    "Technologie": "from-purple-500 to-pink-600",
-    "Littérature": "from-pink-500 to-rose-600",
-    "Vocabulaire": "from-amber-500 to-orange-600",
-    "Economie": "from-yellow-500 to-amber-600",
-    "Philosophie": "from-indigo-500 to-purple-600",
-    "Sciences du vivant et de la Terre": "from-green-500 to-teal-600",
-    "Comment marche l'IA": "from-violet-500 to-purple-600",
+    "Maths": "from-blue-500 to-purple-600",
+    "Physique": "from-blue-500 to-purple-600",
+    "Chimie": "from-blue-500 to-purple-600",
+    "Technologie": "from-blue-500 to-purple-600",
+    "Littérature": "from-blue-500 to-purple-600",
+    "Vocabulaire": "from-blue-500 to-purple-600",
+    "Economie": "from-blue-500 to-purple-600",
+    "Philosophie": "from-blue-500 to-purple-600",
+    "Sciences du vivant et de la Terre": "from-blue-500 to-purple-600",
+    "Comment marche l'IA": "from-blue-500 to-purple-600",
+    "Arts": "from-blue-500 to-purple-600",
+    "Grammaire": "from-blue-500 to-purple-600",
+    "Langues": "from-blue-500 to-purple-600",
   };
 
   // Charger les thèmes et la localisation au démarrage
@@ -103,11 +107,11 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Sauvegarder l'historique quand une conversation commence
+  // Sauvegarder l'historique quand une conversation change
   useEffect(() => {
     if (selectedTheme && selectedSubcategory && messages.length > 0) {
       const existingIndex = history.findIndex(
-        (h) => h.theme === selectedTheme && h.subcategory === selectedSubcategory
+        (h) => h.id.startsWith(`${selectedTheme}-${selectedSubcategory}`)
       );
 
       const newEntry: ConversationHistory = {
@@ -117,6 +121,7 @@ function App() {
         level: level,
         timestamp: Date.now(),
         messageCount: messages.length,
+        messages: messages,
       };
 
       let updated: ConversationHistory[];
@@ -510,10 +515,10 @@ function App() {
         </div>
 
         {/* Bouton palette d'équation */}
-        <div className="p-4 border-t border-purple-500 border-opacity-30 bg-gradient-to-r from-slate-900 to-purple-900">
+        <div className="p-4 border-t border-purple-500 border-opacity-50 bg-gradient-to-r from-slate-900 to-purple-900">
           <button
             onClick={() => setShowFormulaEditor(!showFormulaEditor)}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition text-sm"
+            className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition text-sm"
           >
             {showFormulaEditor ? "✕ Fermer palette d'équation" : "📐 Palette d'équation"}
           </button>
@@ -556,25 +561,25 @@ function App() {
       {/* Historique Panel */}
       {showHistory && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex history-panel-enter">
-          <div className="bg-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl">
+          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold tracking-tight">Historique</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-white">Historique</h2>
               <button
                 onClick={() => setShowHistory(false)}
-                className="text-2xl font-bold hover:opacity-70 transition"
+                className="text-2xl font-bold text-white hover:opacity-70 transition"
               >
                 ✕
               </button>
             </div>
 
             {history.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">Aucune conversation sauvegardée</p>
+              <p className="text-gray-300 text-center py-8">Aucune conversation sauvegardée</p>
             ) : (
               <div className="space-y-3">
                 {history.map((entry, idx) => (
                   <div
                     key={entry.id}
-                    className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 rounded-lg transition history-item-enter border border-gray-200 hover:border-blue-300"
+                    className="p-4 bg-gradient-to-r from-slate-800 to-purple-800 hover:from-slate-700 hover:to-purple-700 rounded-lg transition history-item-enter border border-purple-500 border-opacity-50 hover:border-opacity-100"
                     style={{ animationDelay: `${idx * 50}ms` }}
                   >
                     <div className="flex items-start justify-between">
@@ -583,13 +588,14 @@ function App() {
                           setSelectedTheme(entry.theme);
                           setSelectedSubcategory(entry.subcategory);
                           setLevel(entry.level);
+                          setMessages(entry.messages);
                           setShowHistory(false);
                         }}
                         className="flex-1 cursor-pointer"
                       >
-                        <h3 className="font-bold text-sm">{entry.theme}</h3>
-                        <p className="text-xs text-gray-600">{entry.subcategory}</p>
-                        <div className="flex justify-between mt-2 text-xs text-gray-500">
+                        <h3 className="font-bold text-sm text-white">{entry.theme}</h3>
+                        <p className="text-xs text-gray-200">{entry.subcategory}</p>
+                        <div className="flex justify-between mt-2 text-xs text-gray-300">
                           <span>{entry.level}</span>
                           <span>{entry.messageCount} messages</span>
                         </div>
@@ -602,7 +608,7 @@ function App() {
                           e.stopPropagation();
                           handleDeleteHistoryEntry(entry.id);
                         }}
-                        className="ml-2 text-red-500 hover:text-red-700 transition font-bold"
+                        className="ml-2 text-red-400 hover:text-red-300 transition font-bold"
                         title="Supprimer"
                       >
                         🗑️

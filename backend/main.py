@@ -213,6 +213,39 @@ THEMES = {
         ],
         "description": "Comprendre les bases de l'intelligence artificielle.",
     },
+    "Arts": {
+        "subcategories": [
+            "Peinture",
+            "Sculpture",
+            "Architecture",
+            "Photographie",
+            "Cinéma",
+            "Artistes célèbres",
+        ],
+        "description": "Arts : création, expression et beauté visuelle.",
+    },
+    "Grammaire": {
+        "subcategories": [
+            "Syntaxe",
+            "Conjugaison",
+            "Orthographe",
+            "Ponctuation",
+            "Types de phrases",
+            "Analyse grammaticale",
+        ],
+        "description": "Grammaire : règles et structure de la langue.",
+    },
+    "Langues": {
+        "subcategories": [
+            "Anglais",
+            "Espagnol",
+            "Allemand",
+            "Italien",
+            "Japonais",
+            "Mandarin",
+        ],
+        "description": "Langues : apprentissage des langues étrangères.",
+    },
 }
 
 
