@@ -194,15 +194,15 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
   };
 
   return (
-    <div className="bg-white border-t border-gray-300 p-4">
+    <div className="bg-gradient-to-r from-blue-700 via-purple-700 to-purple-800 border-t border-purple-600 p-4">
       {/* Onglets */}
-      <div className="flex gap-2 mb-4 border-b border-gray-300">
+      <div className="flex gap-2 mb-4 border-b border-purple-600">
         <button
           onClick={() => setActiveTemplate(null)}
           className={`px-4 py-2 text-sm font-bold ${
             activeTemplate === null
-              ? "border-b-2 border-black text-black"
-              : "text-gray-600"
+              ? "border-b-2 border-white text-white"
+              : "text-gray-200"
           }`}
         >
           Caractères spéciaux
@@ -211,8 +211,8 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
           onClick={() => setActiveTemplate("templates")}
           className={`px-4 py-2 text-sm font-bold ${
             activeTemplate === "templates"
-              ? "border-b-2 border-black text-black"
-              : "text-gray-600"
+              ? "border-b-2 border-white text-white"
+              : "text-gray-200"
           }`}
         >
           Templates d'équations
@@ -223,21 +223,21 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
       {activeTemplate === null && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-white">
               Cliquez sur un caractère ({charPage + 1}/{totalPages})
             </p>
             <div className="flex gap-1">
               <button
                 onClick={() => setCharPage((p) => Math.max(0, p - 1))}
                 disabled={charPage === 0}
-                className="px-2 py-1 bg-gray-300 hover:bg-gray-400 rounded text-xs disabled:opacity-50"
+                className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs disabled:opacity-50 text-white font-bold"
               >
                 ◀
               </button>
               <button
                 onClick={() => setCharPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={charPage === totalPages - 1}
-                className="px-2 py-1 bg-gray-300 hover:bg-gray-400 rounded text-xs disabled:opacity-50"
+                className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs disabled:opacity-50 text-white font-bold"
               >
                 ▶
               </button>
@@ -248,7 +248,7 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
               <button
                 key={item.latex}
                 onClick={() => insertChar(item.char)}
-                className="w-full p-2 bg-gray-200 hover:bg-gray-300 rounded text-lg font-bold transition"
+                className="w-full p-2 bg-blue-600 hover:bg-blue-500 rounded text-lg font-bold transition text-white"
                 title={item.latex}
               >
                 {item.char}
@@ -261,7 +261,7 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
       {/* Templates d'équations */}
       {activeTemplate === "templates" && (
         <div>
-          <p className="text-xs text-gray-600 mb-3">
+          <p className="text-xs text-white mb-3">
             Sélectionnez un template et remplissez les paramètres
           </p>
           <div className="grid grid-cols-5 gap-2 mb-4">
@@ -269,7 +269,7 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
               <button
                 key={key}
                 onClick={() => handleTemplateSelect(key)}
-                className="p-2 bg-black text-white rounded hover:bg-gray-800 text-xs font-bold transition"
+                className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded hover:from-blue-500 hover:to-purple-500 text-xs font-bold transition"
               >
                 {template.label}
               </button>
@@ -280,15 +280,15 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
 
       {/* Formulaire de paramètres */}
       {activeTemplate && activeTemplate !== "templates" && (
-        <div className="bg-gray-100 p-3 rounded">
-          <h3 className="font-bold text-sm mb-3">
+        <div className="bg-blue-800 bg-opacity-40 p-3 rounded">
+          <h3 className="font-bold text-sm mb-3 text-white">
             {templates[activeTemplate as keyof typeof templates].label}
           </h3>
           <div className="grid grid-cols-2 gap-2 mb-3">
             {templates[activeTemplate as keyof typeof templates].params.map(
               (param) => (
                 <div key={param}>
-                  <label className="text-xs font-bold text-gray-700 block mb-1">
+                  <label className="text-xs font-bold text-white block mb-1">
                     {param}
                   </label>
                   <input
@@ -298,7 +298,7 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
                       handleParamChange(param, e.target.value)
                     }
                     placeholder={`Ex: ${param}`}
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-xs mb-1"
+                    className="w-full px-2 py-1 border border-blue-400 rounded text-xs mb-1 bg-blue-900 bg-opacity-50 text-white"
                   />
                   {/* Mini-palette de caractères pour ce champ */}
                   <div className="grid grid-cols-6 gap-0.5">
@@ -306,7 +306,7 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
                       <button
                         key={item.latex}
                         onClick={() => insertCharIntoParam(param, item.char)}
-                        className="p-0.5 bg-gray-300 hover:bg-gray-400 rounded text-xs font-bold transition"
+                        className="p-0.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition text-white"
                         type="button"
                       >
                         {item.char}
@@ -319,8 +319,8 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
           </div>
 
           {/* Aperçu LaTeX rendu */}
-          <div className="bg-white p-4 rounded border border-gray-300 mb-3 flex items-center justify-center min-h-16">
-            <p className="text-xs text-gray-600 absolute top-2 left-3">Aperçu :</p>
+          <div className="bg-blue-900 bg-opacity-30 p-4 rounded border border-blue-500 mb-3 flex items-center justify-center min-h-16">
+            <p className="text-xs text-white absolute top-2 left-3">Aperçu :</p>
             <MathDisplay
               formula={templates[
                 activeTemplate as keyof typeof templates
@@ -332,13 +332,13 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
           <div className="flex gap-2">
             <button
               onClick={generateFormula}
-              className="flex-1 bg-black text-white px-3 py-2 rounded font-bold text-sm hover:bg-gray-800 transition"
+              className="flex-1 bg-gradient-to-r from-green-500 to-cyan-600 text-white px-3 py-2 rounded font-bold text-sm hover:from-green-400 hover:to-cyan-500 transition"
             >
               Insérer dans le chat
             </button>
             <button
               onClick={() => setActiveTemplate(null)}
-              className="px-3 py-2 bg-gray-300 rounded font-bold text-sm hover:bg-gray-400 transition"
+              className="px-3 py-2 bg-red-600 rounded font-bold text-sm hover:bg-red-500 transition text-white"
             >
               Annuler
             </button>
