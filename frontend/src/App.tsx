@@ -316,7 +316,7 @@ function App() {
                 setLevel(e.target.value);
                 setMessages([]);
               }}
-              className="px-4 py-2 border border-purple-700 rounded-lg font-medium text-sm bg-purple-800 text-white hover:bg-purple-700 transition-colors"
+              className="px-4 py-2 border border-purple-600 rounded-lg font-medium text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg transition-all"
             >
               {levels.map((l) => (
                 <option key={l} value={l}>
@@ -561,7 +561,7 @@ function App() {
       {/* Historique Panel */}
       {showHistory && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex history-panel-enter">
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl">
+          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl rounded-r-2xl">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold tracking-tight text-white">Historique</h2>
               <button
