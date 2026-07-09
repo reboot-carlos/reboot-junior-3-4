@@ -490,23 +490,23 @@ async def chat(request: ChatRequest) -> dict:
 - Inclus limites, hypothèses et cas d'usage réels
 - Assume une base solide"""
 
-    # Récupérer les données météo si disponibles (open-meteo API)
+    # Récupérer les données météo si disponibles (optionnel, ne jamais bloquer)
     weather_info = ""
-    if request.city:
-        try:
+    try:
+        if request.city:
             async with httpx.AsyncClient() as client_http:
-                # Récupérer les coordonnées
+                # Récupérer les coordonnées avec timeout court
                 geo_response = await client_http.get(
                     "https://geocoding-api.open-meteo.com/v1/search",
                     params={"name": request.city, "count": 1, "format": "json"},
-                    timeout=3.0
+                    timeout=2.0
                 )
 
                 if geo_response.status_code == 200:
                     results = geo_response.json().get("results")
                     if results:
                         loc = results[0]
-                        # Récupérer la météo
+                        # Récupérer la météo avec timeout court
                         weather_response = await client_http.get(
                             "https://api.open-meteo.com/v1/forecast",
                             params={
@@ -515,7 +515,7 @@ async def chat(request: ChatRequest) -> dict:
                                 "current": "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation",
                                 "timezone": "auto"
                             },
-                            timeout=3.0
+                            timeout=2.0
                         )
 
                         if weather_response.status_code == 200:
@@ -537,8 +537,9 @@ async def chat(request: ChatRequest) -> dict:
 - Conditions : {desc}
 - Humidité : {current.get('relative_humidity_2m')}%
 - Vent : {current.get('wind_speed_10m')} km/h"""
-        except Exception:
-            pass  # Ignorer les erreurs météo, ne pas bloquer le chat
+    except Exception:
+        # Silencieusement ignorer TOUS les problèmes de météo/localisation
+        weather_info = ""
 
     # Construire le contexte du tuteur
     formula_instruction = ""
