@@ -428,6 +428,11 @@ function App() {
                           className="rounded"
                         />
                         <span className="flex-1">{theme.name}</span>
+                        {isThemeSelected && selectedThemes.find(t => t.theme === theme.name) && (
+                          <span className="text-xs text-blue-200 truncate">
+                            ({selectedThemes.find(t => t.theme === theme.name)?.subcategory})
+                          </span>
+                        )}
                       </label>
 
                       {/* Sous-thèmes en mode croisé */}

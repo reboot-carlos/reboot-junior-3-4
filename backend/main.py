@@ -590,7 +590,7 @@ Tes règles d'enseignement (toujours) :
 5. **Comparaison** : si plusieurs perspectives existent, compare-les
 6. **Engagement** : pose des questions pour vérifier la compréhension
 7. **Formules** : utilise les formules en LaTeX avec $$ pour le bloc ou $ pour l'inline. JAMAIS en ASCII art.
-
+eQu
 Format : réponds en français."""
 
     try:
