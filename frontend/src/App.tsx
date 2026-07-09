@@ -118,8 +118,8 @@ function App() {
 
       const newEntry: ConversationHistory = {
         id: `${themeKey}-${Date.now()}`,
-        theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : selectedTheme,
-        subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : selectedSubcategory,
+        theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : (selectedTheme || ""),
+        subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : (selectedSubcategory || ""),
         level: level,
         timestamp: Date.now(),
         messageCount: messages.length,
