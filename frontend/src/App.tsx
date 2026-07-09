@@ -286,28 +286,28 @@ function App() {
 
       {/* En-tête avec niveau (visible seulement quand on est en chat) */}
       {selectedTheme && (
-      <div className="bg-white border-b border-gray-100 px-8 py-6 shadow-xs">
+      <div className="bg-gradient-to-r from-purple-900 to-purple-950 border-b border-purple-800 px-8 py-6 shadow-lg">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">AI Lesson</h1>
-            <p className="text-sm text-gray-500 mt-1">Tuteur IA Expert</p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
+            <p className="text-sm text-purple-200 mt-1">Tuteur IA Expert</p>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-sm transition-colors"
+              className="px-4 py-2 bg-purple-800 hover:bg-purple-700 text-white rounded-lg font-medium text-sm transition-colors"
               title="Historique des conversations"
             >
               📚 Historique {history.length > 0 && `(${history.length})`}
             </button>
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 border border-purple-700 rounded-lg px-3 py-2 text-white">
               <span className="text-base">📍</span>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ville"
-                className="bg-transparent text-sm focus:outline-none w-20"
+                className="bg-transparent text-sm text-white placeholder-purple-300 focus:outline-none w-20"
               />
             </div>
             <select
@@ -316,7 +316,7 @@ function App() {
                 setLevel(e.target.value);
                 setMessages([]);
               }}
-              className="px-4 py-2 border border-gray-200 rounded-lg font-medium text-sm bg-white hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-purple-700 rounded-lg font-medium text-sm bg-purple-800 text-white hover:bg-purple-700 transition-colors"
             >
               {levels.map((l) => (
                 <option key={l} value={l}>
@@ -331,7 +331,7 @@ function App() {
 
 
       {/* Contenu principal */}
-      <div className="flex flex-1 gap-4 p-4 overflow-hidden">
+      <div className="flex flex-1 gap-4 p-4 overflow-hidden bg-gradient-to-br from-purple-950 to-slate-950">
         {/* Sidebar - Navigation */}
         {selectedTheme && (
         <div className="w-72 bg-gray-900 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto">
