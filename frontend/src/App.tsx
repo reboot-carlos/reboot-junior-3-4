@@ -236,7 +236,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 text-gray-900 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 text-gray-900 flex flex-col overflow-hidden">
       {!selectedTheme && (
         /* Page d'accueil fullscreen */
         <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden z-40">
