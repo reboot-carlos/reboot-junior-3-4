@@ -240,8 +240,15 @@ function App() {
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
-    if (isMultiThemeMode && selectedThemes.length === 0) return;
-    if (!isMultiThemeMode && (!selectedTheme || !selectedSubcategory)) return;
+    if (isMultiThemeMode) {
+      // Vérifier qu'il y a des thèmes sélectionnés ET que chaque thème a au moins un sous-thème
+      if (selectedThemes.length === 0 || selectedThemes.some(t => t.subcategories.length === 0)) {
+        alert("⚠️ En mode croisé, sélectionne au moins un sous-thème pour chaque thème !");
+        return;
+      }
+    } else {
+      if (!selectedTheme || !selectedSubcategory) return;
+    }
 
     const userMessage: Message = {
       role: "user",
@@ -711,12 +718,12 @@ function App() {
                   }
                 }}
                 placeholder="Posez votre question..."
-                disabled={loading || (!selectedSubcategory && !isMultiThemeMode)}
+                disabled={loading || (!selectedSubcategory && !isMultiThemeMode) || (isMultiThemeMode && selectedThemes.some(t => t.subcategories.length === 0))}
                 className="flex-1 border border-purple-500 border-opacity-50 rounded-lg px-5 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition bg-gray-800"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={loading || !inputValue.trim() || (!selectedSubcategory && !isMultiThemeMode)}
+                disabled={loading || !inputValue.trim() || (!selectedSubcategory && !isMultiThemeMode) || (isMultiThemeMode && selectedThemes.some(t => t.subcategories.length === 0))}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition text-lg"
                 title="Envoyer (Entrée)"
               >
