@@ -331,7 +331,7 @@ function App() {
 
 
       {/* Contenu principal */}
-      <div className="flex flex-1 gap-4 p-4 overflow-hidden bg-gradient-to-br from-purple-950 to-slate-950">
+      <div className="flex flex-1 gap-4 p-4 bg-gradient-to-br from-purple-950 to-slate-950">
         {/* Sidebar - Navigation */}
         {selectedTheme && (
         <div className="w-72 bg-gray-900 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
