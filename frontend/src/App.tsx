@@ -420,7 +420,7 @@ function App() {
             className={`w-full px-4 py-2 mb-4 rounded-lg text-sm font-bold transition-all ${
               isMultiThemeMode
                 ? "bg-gradient-to-r from-green-500 to-cyan-600 text-white shadow-lg"
-                : "bg-gray-700 hover:bg-gray-600 text-white"
+                : "bg-blue-700 hover:bg-blue-600 text-white"
             }`}
           >
             {isMultiThemeMode ? "✓ Mode Croisé" : "+ Croiser les thèmes"}
@@ -438,7 +438,7 @@ function App() {
                   {isMultiThemeMode ? (
                     // Mode multi-thèmes : checkboxes
                     <div>
-                      <label className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm transition-all cursor-pointer bg-gray-800 hover:bg-gray-700 font-medium">
+                      <label className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm transition-all cursor-pointer bg-blue-800 bg-opacity-40 hover:bg-opacity-60 font-medium text-white">
                         <input
                           type="checkbox"
                           checked={isThemeSelected}
@@ -450,11 +450,11 @@ function App() {
                             }
                             setMessages([]);
                           }}
-                          className="rounded"
+                          className="rounded accent-blue-400"
                         />
                         <span className="flex-1">{theme.name}</span>
                         {isThemeSelected && selectedThemes.find(t => t.theme === theme.name)?.subcategories.length! > 0 && (
-                          <span className="text-xs text-blue-200 truncate">
+                          <span className="text-xs text-blue-100 truncate">
                             ({selectedThemes.find(t => t.theme === theme.name)?.subcategories.join(", ")})
                           </span>
                         )}
@@ -470,7 +470,7 @@ function App() {
                             return (
                               <label
                                 key={sub}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer bg-gray-700 hover:bg-gray-600 font-medium text-white"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all cursor-pointer bg-blue-700 bg-opacity-40 hover:bg-opacity-60 font-medium text-white"
                               >
                                 <input
                                   type="checkbox"
@@ -512,10 +512,10 @@ function App() {
                           );
                           setMessages([]);
                         }}
-                        className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium bg-gradient-to-r text-white ${
+                        className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium text-white ${
                           selectedTheme === theme.name
-                            ? `${themeColors[theme.name] || "from-blue-500 to-purple-600"} shadow-md translate-x-2`
-                            : `${themeColors[theme.name] || "from-blue-500 to-purple-600"} opacity-75 hover:opacity-100`
+                            ? `bg-gradient-to-r ${themeColors[theme.name] || "from-blue-500 to-purple-600"} shadow-md translate-x-2`
+                            : `bg-gradient-to-r ${themeColors[theme.name] || "from-blue-500 to-purple-600"} opacity-70 hover:opacity-90`
                         }`}
                       >
                         <span>{theme.name}</span>
@@ -529,7 +529,7 @@ function App() {
                       {/* Sous-thèmes (Accordion) */}
                       {expandedTheme === theme.name &&
                         theme.subcategories.length > 0 && (
-                          <div className="pl-4 mt-2 space-y-1 bg-gray-800 rounded-lg p-3">
+                          <div className="pl-4 mt-2 space-y-1 bg-blue-800 bg-opacity-20 rounded-lg p-3">
                             {theme.subcategories.map((sub) => (
                               <button
                                 key={sub}
@@ -540,7 +540,7 @@ function App() {
                                 className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium bg-gradient-to-r from-blue-400 to-purple-500 text-white ${
                                   selectedSubcategory === sub
                                     ? "translate-x-2 shadow-md"
-                                    : "opacity-75 hover:opacity-100"
+                                    : "opacity-70 hover:opacity-90"
                                 }`}
                               >
                                 {sub}
@@ -560,7 +560,7 @@ function App() {
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              className="w-full px-3 py-2 mt-4 bg-gray-700 hover:bg-gray-600 rounded text-xs font-bold transition"
+              className="w-full px-3 py-2 mt-4 bg-red-600 hover:bg-red-500 rounded text-xs font-bold transition text-white"
             >
               Nouvelle conversation
             </button>
