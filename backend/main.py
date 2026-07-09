@@ -251,8 +251,8 @@ THEMES = {
 
 # Modèles Pydantic pour les requêtes
 class ChatRequest(BaseModel):
-    theme: str
-    subcategory: str
+    theme: str | list[str]
+    subcategory: str | list[str]
     formula_form: str | None = None
     level: str = "lycéen"
     messages: list[dict[str, str]]
@@ -428,6 +428,7 @@ async def chat(request: ChatRequest) -> dict:
     """
     Traite une question du utilisateur et retourne la réponse du tuteur.
     Le tuteur adapte son style au style d'écriture de l'utilisateur.
+    Supporte les thèmes simples ou multiples (croisés).
     """
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -437,8 +438,14 @@ async def chat(request: ChatRequest) -> dict:
             detail="Clé API Anthropic non configurée",
         )
 
-    if request.theme not in THEMES:
-        raise HTTPException(status_code=404, detail=f"Thème '{request.theme}' non trouvé")
+    # Normaliser les thèmes en liste
+    themes_list = request.theme if isinstance(request.theme, list) else [request.theme]
+    subcategories_list = request.subcategory if isinstance(request.subcategory, list) else [request.subcategory]
+
+    # Vérifier que tous les thèmes existent
+    for theme in themes_list:
+        if theme not in THEMES:
+            raise HTTPException(status_code=404, detail=f"Thème '{theme}' non trouvé")
 
     # Détecter le style d'écriture du dernier message utilisateur
     last_user_message = next(
@@ -546,9 +553,30 @@ async def chat(request: ChatRequest) -> dict:
     if request.formula_form:
         formula_instruction = f"\n**Forme de formule préférée** : utilise la notation '{request.formula_form}' quand tu montres des formules mathématiques."
 
-    system_prompt = f"""Tu es un tuteur expert et passionné en {request.theme}.
-Contexte : {THEMES[request.theme]['description']}
-{f'Sous-thème : {request.subcategory}' if request.subcategory else ''}{formula_instruction}{weather_info}
+    # Construire le contexte pour un ou plusieurs thèmes
+    if len(themes_list) == 1:
+        # Mode simple : un seul thème
+        theme_context = f"""Tu es un tuteur expert et passionné en {themes_list[0]}.
+Contexte : {THEMES[themes_list[0]]['description']}
+{f'Sous-thème : {subcategories_list[0]}' if subcategories_list[0] else ''}"""
+    else:
+        # Mode croisé : plusieurs thèmes
+        theme_names = " + ".join(themes_list)
+        descriptions = " | ".join([
+            f"{THEMES[theme]['description']}"
+            for theme in themes_list
+        ])
+        subcategories_text = " + ".join([
+            f"{sub}" for sub in subcategories_list if sub
+        ])
+
+        theme_context = f"""Tu es un tuteur expert capable de croiser les thèmes suivants : {theme_names}.
+Contextes combinés : {descriptions}
+Sous-thèmes croisés : {subcategories_text}
+
+**Important** : croise intelligemment ces thèmes dans tes explications. Montre comment les concepts de {" et ".join(themes_list)} s'interconnectent et s'enrichissent mutuellement."""
+
+    system_prompt = f"""{theme_context}{formula_instruction}{weather_info}
 
 {level_instruction}
 

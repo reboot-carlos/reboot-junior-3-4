@@ -18,8 +18,8 @@ interface Message {
 
 interface ConversationHistory {
   id: string;
-  theme: string;
-  subcategory: string;
+  theme: string | string[];
+  subcategory: string | string[];
   level: string;
   timestamp: number;
   messageCount: number;
@@ -32,6 +32,8 @@ function App() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
     null
   );
+  const [isMultiThemeMode, setIsMultiThemeMode] = useState(false);
+  const [selectedThemes, setSelectedThemes] = useState<Array<{ theme: string; subcategory: string }>>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,15 +111,15 @@ function App() {
 
   // Sauvegarder l'historique quand une conversation change
   useEffect(() => {
-    if (selectedTheme && selectedSubcategory && messages.length > 0) {
-      const existingIndex = history.findIndex(
-        (h) => h.id.startsWith(`${selectedTheme}-${selectedSubcategory}`)
-      );
+    if (messages.length > 0 && (selectedTheme || isMultiThemeMode)) {
+      const themeKey = isMultiThemeMode
+        ? selectedThemes.map(t => `${t.theme}-${t.subcategory}`).join("+")
+        : `${selectedTheme}-${selectedSubcategory}`;
 
       const newEntry: ConversationHistory = {
-        id: `${selectedTheme}-${selectedSubcategory}-${Date.now()}`,
-        theme: selectedTheme,
-        subcategory: selectedSubcategory,
+        id: `${themeKey}-${Date.now()}`,
+        theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : selectedTheme,
+        subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : selectedSubcategory,
         level: level,
         timestamp: Date.now(),
         messageCount: messages.length,
@@ -125,6 +127,7 @@ function App() {
       };
 
       let updated: ConversationHistory[];
+      const existingIndex = history.findIndex((h) => h.id.startsWith(themeKey));
       if (existingIndex >= 0) {
         updated = [...history];
         updated[existingIndex] = newEntry;
@@ -135,7 +138,7 @@ function App() {
       setHistory(updated);
       localStorage.setItem("conversationHistory", JSON.stringify(updated));
     }
-  }, [messages]);
+  }, [messages, selectedTheme, selectedSubcategory, isMultiThemeMode, selectedThemes]);
 
   // Écouter les touches sur la page d'accueil
   useEffect(() => {
@@ -157,6 +160,35 @@ function App() {
     const updated = history.filter((h) => h.id !== id);
     setHistory(updated);
     localStorage.setItem("conversationHistory", JSON.stringify(updated));
+  };
+
+  const handleLoadConversation = (entry: ConversationHistory) => {
+    setLevel(entry.level);
+    setMessages(entry.messages);
+    setShowHistory(false);
+
+    // Déterminer si c'était une conversation multi-thèmes ou simple
+    if (Array.isArray(entry.theme)) {
+      // Mode multi-thèmes
+      setIsMultiThemeMode(true);
+      const themes = entry.theme as string[];
+      const subcats = entry.subcategory as string[];
+      setSelectedThemes(
+        themes.map((t, i) => ({
+          theme: t,
+          subcategory: subcats[i] || "",
+        }))
+      );
+      // Réinitialiser les sélections simples
+      setSelectedTheme(null);
+      setSelectedSubcategory(null);
+    } else {
+      // Mode simple
+      setIsMultiThemeMode(false);
+      setSelectedTheme(entry.theme as string);
+      setSelectedSubcategory(entry.subcategory as string);
+      setSelectedThemes([]);
+    }
   };
 
   const handleFormulaHover = (id: string, event: React.MouseEvent<HTMLDivElement>) => {
@@ -187,7 +219,10 @@ function App() {
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !selectedTheme || !selectedSubcategory) return;
+    if (!inputValue.trim()) return;
+
+    if (isMultiThemeMode && selectedThemes.length === 0) return;
+    if (!isMultiThemeMode && (!selectedTheme || !selectedSubcategory)) return;
 
     const userMessage: Message = {
       role: "user",
@@ -204,8 +239,8 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          theme: selectedTheme,
-          subcategory: selectedSubcategory,
+          theme: isMultiThemeMode ? selectedThemes.map(t => t.theme) : selectedTheme,
+          subcategory: isMultiThemeMode ? selectedThemes.map(t => t.subcategory) : selectedSubcategory,
           level: level,
           city: city,
           messages: newMessages.map((msg) => ({
@@ -347,61 +382,140 @@ function App() {
         {/* Sidebar - Navigation */}
         {selectedTheme && (
         <div className="w-72 bg-gray-900 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
-          {/* Accordions Thèmes */}
-          <div className="space-y-2">
-            {themes.map((theme) => (
-              <div key={theme.name}>
-                <button
-                  onClick={() => {
-                    setExpandedTheme(
-                      expandedTheme === theme.name ? null : theme.name
-                    );
-                    setSelectedTheme(theme.name);
-                    setSelectedSubcategory(
-                      theme.subcategories.length > 0
-                        ? theme.subcategories[0]
-                        : null
-                    );
-                    setMessages([]);
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium bg-gradient-to-r text-white ${
-                    selectedTheme === theme.name
-                      ? `${themeColors[theme.name] || "from-blue-500 to-purple-600"} shadow-md translate-x-2`
-                      : `${themeColors[theme.name] || "from-blue-500 to-purple-600"} opacity-75 hover:opacity-100`
-                  }`}
-                >
-                  <span>{theme.name}</span>
-                  {theme.subcategories.length > 0 && (
-                    <span className="text-xs">
-                      {expandedTheme === theme.name ? "▼" : "▶"}
-                    </span>
-                  )}
-                </button>
+          {/* Bouton Croiser les thèmes */}
+          <button
+            onClick={() => {
+              setIsMultiThemeMode(!isMultiThemeMode);
+              if (isMultiThemeMode) {
+                setSelectedThemes([]);
+                setMessages([]);
+              }
+            }}
+            className={`w-full px-4 py-2 mb-4 rounded-lg text-sm font-bold transition-all ${
+              isMultiThemeMode
+                ? "bg-gradient-to-r from-green-500 to-cyan-600 text-white shadow-lg"
+                : "bg-gray-700 hover:bg-gray-600 text-white"
+            }`}
+          >
+            {isMultiThemeMode ? "✓ Mode Croisé" : "+ Croiser les thèmes"}
+          </button>
 
-                {/* Sous-thèmes (Accordion) */}
-                {expandedTheme === theme.name &&
-                  theme.subcategories.length > 0 && (
-                    <div className="pl-4 mt-2 space-y-1 bg-gray-800 rounded-lg p-3">
-                      {theme.subcategories.map((sub) => (
-                        <button
-                          key={sub}
-                          onClick={() => {
-                            setSelectedSubcategory(sub);
+          {/* Accordions Thèmes / Mode Croisé */}
+          <div className="space-y-2">
+            {themes.map((theme) => {
+              const isThemeSelected = isMultiThemeMode
+                ? selectedThemes.some(t => t.theme === theme.name)
+                : selectedTheme === theme.name;
+
+              return (
+                <div key={theme.name}>
+                  {isMultiThemeMode ? (
+                    // Mode multi-thèmes : checkboxes
+                    <div>
+                      <label className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm transition-all cursor-pointer bg-gray-800 hover:bg-gray-700 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={isThemeSelected}
+                          onChange={() => {
+                            if (isThemeSelected) {
+                              setSelectedThemes(selectedThemes.filter(t => t.theme !== theme.name));
+                            } else {
+                              const firstSub = theme.subcategories.length > 0 ? theme.subcategories[0] : "";
+                              setSelectedThemes([...selectedThemes, { theme: theme.name, subcategory: firstSub }]);
+                            }
                             setMessages([]);
                           }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium bg-gradient-to-r from-blue-400 to-purple-500 text-white ${
-                            selectedSubcategory === sub
-                              ? "translate-x-2 shadow-md"
-                              : "opacity-75 hover:opacity-100"
-                          }`}
-                        >
-                          {sub}
-                        </button>
-                      ))}
+                          className="rounded"
+                        />
+                        <span className="flex-1">{theme.name}</span>
+                      </label>
+
+                      {/* Sous-thèmes en mode croisé */}
+                      {isThemeSelected && theme.subcategories.length > 0 && (
+                        <div className="pl-6 mt-2 space-y-1">
+                          {theme.subcategories.map((sub) => {
+                            const selectedThemeSub = selectedThemes.find(t => t.theme === theme.name);
+                            const isSubSelected = selectedThemeSub?.subcategory === sub;
+
+                            return (
+                              <button
+                                key={sub}
+                                onClick={() => {
+                                  setSelectedThemes(selectedThemes.map(t =>
+                                    t.theme === theme.name ? { ...t, subcategory: sub } : t
+                                  ));
+                                  setMessages([]);
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium ${
+                                  isSubSelected
+                                    ? "bg-gradient-to-r from-green-500 to-cyan-600 text-white"
+                                    : "bg-gray-700 hover:bg-gray-600 text-white"
+                                }`}
+                              >
+                                {sub}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    // Mode simple : sélection unique
+                    <>
+                      <button
+                        onClick={() => {
+                          setExpandedTheme(
+                            expandedTheme === theme.name ? null : theme.name
+                          );
+                          setSelectedTheme(theme.name);
+                          setSelectedSubcategory(
+                            theme.subcategories.length > 0
+                              ? theme.subcategories[0]
+                              : null
+                          );
+                          setMessages([]);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium bg-gradient-to-r text-white ${
+                          selectedTheme === theme.name
+                            ? `${themeColors[theme.name] || "from-blue-500 to-purple-600"} shadow-md translate-x-2`
+                            : `${themeColors[theme.name] || "from-blue-500 to-purple-600"} opacity-75 hover:opacity-100`
+                        }`}
+                      >
+                        <span>{theme.name}</span>
+                        {theme.subcategories.length > 0 && (
+                          <span className="text-xs">
+                            {expandedTheme === theme.name ? "▼" : "▶"}
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Sous-thèmes (Accordion) */}
+                      {expandedTheme === theme.name &&
+                        theme.subcategories.length > 0 && (
+                          <div className="pl-4 mt-2 space-y-1 bg-gray-800 rounded-lg p-3">
+                            {theme.subcategories.map((sub) => (
+                              <button
+                                key={sub}
+                                onClick={() => {
+                                  setSelectedSubcategory(sub);
+                                  setMessages([]);
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all font-medium bg-gradient-to-r from-blue-400 to-purple-500 text-white ${
+                                  selectedSubcategory === sub
+                                    ? "translate-x-2 shadow-md"
+                                    : "opacity-75 hover:opacity-100"
+                                }`}
+                              >
+                                {sub}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                    </>
                   )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
 
@@ -420,11 +534,24 @@ function App() {
         {/* Zone principale - Chat */}
       <div className={`flex-1 flex flex-col relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 rounded-xl overflow-hidden shadow-lg ${selectedTheme ? 'chat-area-enter' : ''}`}>
         {/* En-tête */}
-        {selectedTheme ? (
+        {selectedTheme || isMultiThemeMode ? (
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-8 rounded-t-xl border-b border-purple-500">
-            <h1 className="text-3xl font-bold tracking-tight">{selectedTheme}</h1>
-            {selectedSubcategory && (
-              <p className="text-blue-100 text-sm mt-2">{selectedSubcategory}</p>
+            {isMultiThemeMode && selectedThemes.length > 0 ? (
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {selectedThemes.map(t => t.theme).join(" + ")}
+                </h1>
+                <p className="text-blue-100 text-sm mt-2">
+                  {selectedThemes.map(t => t.subcategory).filter(Boolean).join(" • ")}
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">{selectedTheme}</h1>
+                {selectedSubcategory && (
+                  <p className="text-blue-100 text-sm mt-2">{selectedSubcategory}</p>
+                )}
+              </>
             )}
           </div>
         ) : (
@@ -554,12 +681,12 @@ function App() {
                   }
                 }}
                 placeholder="Posez votre question..."
-                disabled={loading || !selectedSubcategory}
+                disabled={loading || (!selectedSubcategory && !isMultiThemeMode)}
                 className="flex-1 border border-purple-500 border-opacity-50 rounded-lg px-5 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition bg-gray-800"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={loading || !inputValue.trim() || !selectedSubcategory}
+                disabled={loading || !inputValue.trim() || (!selectedSubcategory && !isMultiThemeMode)}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition text-lg"
                 title="Envoyer (Entrée)"
               >
@@ -596,17 +723,15 @@ function App() {
                   >
                     <div className="flex items-start justify-between">
                       <div
-                        onClick={() => {
-                          setSelectedTheme(entry.theme);
-                          setSelectedSubcategory(entry.subcategory);
-                          setLevel(entry.level);
-                          setMessages(entry.messages);
-                          setShowHistory(false);
-                        }}
+                        onClick={() => handleLoadConversation(entry)}
                         className="flex-1 cursor-pointer"
                       >
-                        <h3 className="font-bold text-sm text-white">{entry.theme}</h3>
-                        <p className="text-xs text-gray-200">{entry.subcategory}</p>
+                        <h3 className="font-bold text-sm text-white">
+                          {Array.isArray(entry.theme) ? entry.theme.join(" + ") : entry.theme}
+                        </h3>
+                        <p className="text-xs text-gray-200">
+                          {Array.isArray(entry.subcategory) ? entry.subcategory.join(" • ") : entry.subcategory}
+                        </p>
                         <div className="flex justify-between mt-2 text-xs text-gray-300">
                           <span>{entry.level}</span>
                           <span>{entry.messageCount} messages</span>
