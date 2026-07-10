@@ -177,7 +177,7 @@ function App() {
 
       // Grouper les sous-catégories par thème
       const themeMap = new Map<string, string[]>();
-      themes.forEach((t, i) => {
+      themes.forEach((t) => {
         if (!themeMap.has(t)) {
           themeMap.set(t, []);
         }
@@ -407,7 +407,7 @@ function App() {
       <div className="flex flex-1 gap-4 p-4 bg-gradient-to-br from-purple-950 to-slate-950 overflow-hidden">
         {/* Sidebar - Navigation */}
         {selectedTheme && (
-        <div className="w-72 bg-gradient-to-b from-blue-800 via-purple-800 to-purple-900 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
+        <div className="w-72 bg-gradient-to-b from-blue-900 via-purple-900 to-purple-950 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
           {/* Bouton Croiser les thèmes */}
           <button
             onClick={() => {
