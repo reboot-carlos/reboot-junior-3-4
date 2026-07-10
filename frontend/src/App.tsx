@@ -627,7 +627,7 @@ function App() {
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              className="w-full px-3 py-2 mt-4 bg-red-600 hover:bg-red-500 rounded text-xs font-bold transition text-white"
+              className="w-full px-3 py-2 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-lg rounded text-xs font-bold transition text-white"
             >
               Nouvelle conversation
             </button>
@@ -803,16 +803,30 @@ function App() {
 
       {/* Historique Panel */}
       {showHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex history-panel-enter">
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl rounded-r-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex fadeIn">
+          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl rounded-r-2xl slideInRight">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold tracking-tight text-white">Historique</h2>
-              <button
-                onClick={() => setShowHistory(false)}
-                className="text-2xl font-bold text-white hover:opacity-70 transition"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                {history.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setHistory([]);
+                      localStorage.setItem("conversationHistory", JSON.stringify([]));
+                    }}
+                    className="px-2 py-1 bg-red-600 hover:bg-red-500 rounded text-xs font-bold transition text-white"
+                    title="Supprimer tout l'historique"
+                  >
+                    🗑️
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="text-2xl font-bold text-white hover:opacity-70 transition"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {history.length === 0 ? (
