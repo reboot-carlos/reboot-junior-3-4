@@ -46,7 +46,7 @@ function App() {
   const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [showFormulaEditor, setShowFormulaEditor] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const oscillationTimersRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+  const oscillationTimersRef = useRef<Record<string, number>>({});
 
   const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
 
@@ -351,8 +351,9 @@ function App() {
                   left: formula.left,
                   top: formula.top,
                   transform: `translate(${formulaPositions[formula.id]?.x || 0}px, ${formulaPositions[formula.id]?.y || 0}px)`,
+                  transition: formulaPositions[formula.id] && (formulaPositions[formula.id].x !== 0 || formulaPositions[formula.id].y !== 0) ? 'none' : 'transform 0.3s ease-out',
                 }}
-                className={`floating-formula ${formula.animClass} text-white opacity-70 hover:opacity-100 cursor-grab active:cursor-grabbing transition-all duration-300 select-none`}
+                className={`floating-formula ${formula.animClass} text-white opacity-70 hover:opacity-100 cursor-grab active:cursor-grabbing select-none`}
               >
                 <span className={`text-${formula.size} font-light`}>{formula.text}</span>
               </div>
