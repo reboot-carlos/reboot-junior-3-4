@@ -578,7 +578,6 @@ function App() {
                               : null
                           );
                           setMessages([]);
-                          setShowMobileSidebar(false);
                         }}
                         className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium text-white ${
                           selectedTheme === theme.name
