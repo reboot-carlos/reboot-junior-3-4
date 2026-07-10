@@ -8,6 +8,7 @@ interface FormulaEditorProps {
 export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [params, setParams] = useState<Record<string, string>>({});
+  const [paramWithTemplateMenu, setParamWithTemplateMenu] = useState<string | null>(null);
 
   const templates = {
     sigma: {
@@ -300,19 +301,48 @@ export function FormulaEditor({ onInsertFormula }: FormulaEditorProps) {
                     placeholder={`Ex: ${param}`}
                     className="w-full px-2 py-1 border border-blue-400 rounded text-xs mb-1 bg-blue-900 bg-opacity-50 text-white"
                   />
-                  {/* Mini-palette de caractères pour ce champ */}
-                  <div className="grid grid-cols-6 gap-0.5">
-                    {specialChars.slice(0, 6).map((item) => (
-                      <button
-                        key={item.latex}
-                        onClick={() => insertCharIntoParam(param, item.char)}
-                        className="p-0.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition text-white"
-                        type="button"
-                      >
-                        {item.char}
-                      </button>
-                    ))}
+                  {/* Mini-palette de caractères + bouton templates */}
+                  <div className="flex gap-1 mb-1">
+                    <button
+                      onClick={() => setParamWithTemplateMenu(paramWithTemplateMenu === param ? null : param)}
+                      className="flex-1 p-1 bg-purple-600 hover:bg-purple-500 rounded text-xs font-bold transition text-white"
+                      type="button"
+                      title="Insérer un template"
+                    >
+                      📐
+                    </button>
+                    <div className="grid grid-cols-5 gap-0.5 flex-1">
+                      {specialChars.slice(0, 5).map((item) => (
+                        <button
+                          key={item.latex}
+                          onClick={() => insertCharIntoParam(param, item.char)}
+                          className="p-0.5 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition text-white"
+                          type="button"
+                        >
+                          {item.char}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  {/* Menu de sélection de templates pour ce champ */}
+                  {paramWithTemplateMenu === param && (
+                    <div className="grid grid-cols-2 gap-1 mb-1 bg-blue-900 bg-opacity-50 p-2 rounded border border-blue-500">
+                      {Object.entries(templates).map(([key, template]) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            insertCharIntoParam(param, template.generate({}));
+                            setParamWithTemplateMenu(null);
+                          }}
+                          className="p-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded text-xs font-bold transition text-white"
+                          type="button"
+                        >
+                          {template.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )
             )}
