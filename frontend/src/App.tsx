@@ -225,6 +225,7 @@ function App() {
 
       if (elapsed >= oscillationDuration) {
         // Arrêter après 2 secondes
+        console.log('Oscillation terminée pour', oscillatingId);
         setFormulaPositions((prev) => ({
           ...prev,
           [oscillatingId]: { x: 0, y: 0 },
@@ -232,16 +233,18 @@ function App() {
         setOscillatingId(null);
         clearInterval(interval);
       } else {
-        // Oscillation aléatoire
-        const randomX = (Math.random() - 0.5) * 50;
-        const randomY = (Math.random() - 0.5) * 50;
+        // Oscillation aléatoire SPECTACULAIRE (±100px)
+        const randomX = (Math.random() - 0.5) * 200;
+        const randomY = (Math.random() - 0.5) * 200;
+
+        console.log(`Oscillating ${oscillatingId}: x=${Math.round(randomX)}, y=${Math.round(randomY)}`);
 
         setFormulaPositions((prev) => ({
           ...prev,
           [oscillatingId]: { x: randomX, y: randomY },
         }));
       }
-    }, 30); // Mise à jour toutes les 30ms
+    }, 20); // Mise à jour toutes les 20ms pour plus de fluidité
 
     oscillationIntervalRef.current = interval;
 
@@ -349,12 +352,20 @@ function App() {
             ].map((formula) => (
               <div
                 key={formula.id}
-                onMouseEnter={() => handleFormulaHover(formula.id)}
-                onMouseLeave={() => handleFormulaLeave(formula.id)}
+                onMouseEnter={() => {
+                  console.log('Hover on', formula.id);
+                  handleFormulaHover(formula.id);
+                }}
+                onMouseLeave={() => {
+                  console.log('Leave', formula.id);
+                  handleFormulaLeave(formula.id);
+                }}
                 style={{
                   position: "absolute",
                   left: formula.left,
                   top: formula.top,
+                  padding: '20px',
+                  pointerEvents: 'auto',
                   transform: `translate(${formulaPositions[formula.id]?.x || 0}px, ${formulaPositions[formula.id]?.y || 0}px)`,
                   transition: formulaPositions[formula.id] && (formulaPositions[formula.id].x !== 0 || formulaPositions[formula.id].y !== 0) ? 'none' : 'transform 0.3s ease-out',
                 }}
