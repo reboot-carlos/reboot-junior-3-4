@@ -378,14 +378,14 @@ function App() {
 
           {/* Contenu central */}
           <div className="relative z-10 h-full flex items-center justify-center">
-            <div className="text-center px-6">
-              <div className="mb-8 flex justify-center">
-                <Logo size={120} />
+            <div className="text-center px-4 md:px-6">
+              <div className="mb-6 md:mb-8 flex justify-center">
+                <Logo size={80} />
               </div>
-              <h1 className="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight drop-shadow-lg">
+              <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold mb-4 md:mb-6 text-white tracking-tight drop-shadow-lg">
                 AI Lesson
               </h1>
-              <p className="text-2xl md:text-3xl text-blue-200 mb-12 font-light">
+              <p className="text-lg md:text-2xl lg:text-3xl text-blue-200 mb-8 md:mb-12 font-light">
                 Apprendre avec un tuteur IA expert
               </p>
               <button
@@ -408,31 +408,31 @@ function App() {
 
       {/* En-tête avec niveau (visible seulement quand on est en chat) */}
       {selectedTheme && (
-      <div className="bg-gradient-to-r from-purple-900 to-purple-950 border-b border-purple-800 px-8 py-6 shadow-lg">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <Logo size={56} />
+      <div className="bg-gradient-to-r from-purple-900 to-purple-950 border-b border-purple-800 px-4 md:px-8 py-4 md:py-6 shadow-lg">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <Logo size={48} />
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
-              <p className="text-sm text-purple-200 mt-1">Tuteur IA Expert</p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
+              <p className="text-xs md:text-sm text-purple-200 mt-1">Tuteur IA Expert</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="px-4 py-2 bg-purple-800 hover:bg-purple-700 text-white rounded-lg font-medium text-sm transition-colors"
+              className="px-2 md:px-4 py-1 md:py-2 bg-purple-800 hover:bg-purple-700 text-white rounded text-xs md:text-sm transition-colors whitespace-nowrap"
               title="Historique des conversations"
             >
-              📚 Historique {history.length > 0 && `(${history.length})`}
+              📚 {history.length > 0 && `(${history.length})`}
             </button>
-            <div className="flex items-center gap-2 border border-purple-700 rounded-lg px-3 py-2 text-white">
-              <span className="text-base">📍</span>
+            <div className="hidden md:flex items-center gap-2 border border-purple-700 rounded-lg px-2 md:px-3 py-1 md:py-2 text-white">
+              <span className="text-sm">📍</span>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Ville"
-                className="bg-transparent text-sm text-white placeholder-purple-300 focus:outline-none w-20"
+                className="bg-transparent text-xs text-white placeholder-purple-300 focus:outline-none w-16"
               />
             </div>
             <select
@@ -441,7 +441,7 @@ function App() {
                 setLevel(e.target.value);
                 setMessages([]);
               }}
-              className="px-4 py-2 border border-purple-600 rounded-lg font-medium text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg transition-all"
+              className="px-2 md:px-4 py-1 md:py-2 border border-purple-600 rounded font-medium text-xs md:text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg transition-all"
             >
               {levels.map((l) => (
                 <option key={l} value={l}>
@@ -456,10 +456,10 @@ function App() {
 
 
       {/* Contenu principal */}
-      <div className="flex flex-1 gap-4 p-4 bg-gradient-to-br from-purple-950 to-slate-950 overflow-hidden">
+      <div className="flex flex-1 gap-2 md:gap-4 p-2 md:p-4 bg-gradient-to-br from-purple-950 to-slate-950 overflow-hidden">
         {/* Sidebar - Navigation */}
         {selectedTheme && (
-        <div className="w-72 bg-gradient-to-b from-blue-900 via-purple-900 to-purple-950 text-white rounded-xl p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
+        <div className="hidden md:block w-48 lg:w-72 bg-gradient-to-b from-blue-900 via-purple-900 to-purple-950 text-white rounded-xl p-4 md:p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
           {/* Bouton Croiser les thèmes */}
           <button
             onClick={() => {
@@ -621,7 +621,7 @@ function App() {
         )}
 
         {/* Zone principale - Chat */}
-      <div className={`flex-1 flex flex-col relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 rounded-xl overflow-hidden shadow-lg ${selectedTheme ? 'chat-area-enter' : ''}`}>
+      <div className={`flex-1 flex flex-col relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 rounded-lg md:rounded-xl overflow-hidden shadow-lg ${selectedTheme ? 'chat-area-enter' : ''}`}>
         {/* En-tête */}
         {selectedTheme || isMultiThemeMode ? (
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-8 rounded-t-xl border-b border-purple-500">
@@ -650,7 +650,7 @@ function App() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-6 text-white relative">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-6 text-white relative">
           {/* Formules en fond de la zone de discussion */}
           {selectedTheme && (
             <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
@@ -702,10 +702,10 @@ function App() {
               }`}
             >
               <div
-                className={`max-w-2xl px-6 py-4 ${
+                className={`max-w-sm md:max-w-2xl px-4 md:px-6 py-3 md:py-4 ${
                   msg.role === "user"
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-2xl rounded-tr-lg shadow-lg"
-                    : "bg-gray-100 text-gray-900 rounded-2xl rounded-tl-lg border border-purple-300 border-opacity-50 shadow-md"
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl md:rounded-2xl md:rounded-tr-lg shadow-lg"
+                    : "bg-gray-100 text-gray-900 rounded-xl md:rounded-2xl md:rounded-tl-lg border border-purple-300 border-opacity-50 shadow-md"
                 }`}
               >
                 {msg.role === "user" ? (
@@ -758,8 +758,8 @@ function App() {
         )}
 
         {/* Input */}
-        <div className="bg-gradient-to-r from-slate-900 to-purple-900 border-t border-purple-500 border-opacity-30 rounded-b-xl p-6">
-            <div className="flex gap-3">
+        <div className="bg-gradient-to-r from-slate-900 to-purple-900 border-t border-purple-500 border-opacity-30 rounded-b-lg md:rounded-b-xl p-3 md:p-6">
+            <div className="flex gap-2 md:gap-3">
               <input
                 type="text"
                 value={inputValue}
@@ -769,14 +769,14 @@ function App() {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Posez votre question..."
+                placeholder="Votre question..."
                 disabled={loading || (!selectedSubcategory && !isMultiThemeMode) || (isMultiThemeMode && selectedThemes.some(t => t.subcategories.length === 0))}
-                className="flex-1 border border-purple-500 border-opacity-50 rounded-lg px-5 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition bg-gray-800"
+                className="flex-1 border border-purple-500 border-opacity-50 rounded-lg px-3 md:px-5 py-2 md:py-3 text-sm md:text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 transition bg-gray-800"
               />
               <button
                 onClick={handleSendMessage}
                 disabled={loading || !inputValue.trim() || (!selectedSubcategory && !isMultiThemeMode) || (isMultiThemeMode && selectedThemes.some(t => t.subcategories.length === 0))}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition text-lg"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 md:px-6 py-2 md:py-3 rounded-lg font-bold hover:shadow-lg disabled:opacity-50 transition text-base md:text-lg"
                 title="Envoyer (Entrée)"
               >
                 →
