@@ -46,6 +46,7 @@ function App() {
   const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [showFormulaEditor, setShowFormulaEditor] = useState(false);
   const [oscillatingId, setOscillatingId] = useState<string | null>(null);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const oscillationIntervalRef = useRef<number | null>(null);
 
@@ -410,7 +411,14 @@ function App() {
       {selectedTheme && (
       <div className="bg-gradient-to-r from-purple-900 to-purple-950 border-b border-purple-800 px-4 md:px-8 py-4 md:py-6 shadow-lg">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4 w-full md:w-auto">
+            <button
+              onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+              className="md:hidden px-3 py-2 bg-purple-800 hover:bg-purple-700 rounded text-white text-lg"
+              title="Menu"
+            >
+              ☰
+            </button>
             <Logo size={48} />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
@@ -455,11 +463,19 @@ function App() {
       )}
 
 
+      {/* Modal du sidebar sur mobile */}
+      {showMobileSidebar && selectedTheme && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setShowMobileSidebar(false)}
+        />
+      )}
+
       {/* Contenu principal */}
       <div className="flex flex-1 gap-2 md:gap-4 p-2 md:p-4 bg-gradient-to-br from-purple-950 to-slate-950 overflow-hidden">
         {/* Sidebar - Navigation */}
         {selectedTheme && (
-        <div className="hidden md:block w-48 lg:w-72 bg-gradient-to-b from-blue-900 via-purple-900 to-purple-950 text-white rounded-xl p-4 md:p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto" style={{height: "calc(100vh - 160px)"}}>
+        <div className={`${showMobileSidebar ? 'fixed left-0 top-20 bottom-0 z-50 w-72' : 'hidden md:block w-48 lg:w-72'} bg-gradient-to-b from-blue-900 via-purple-900 to-purple-950 text-white rounded-r-xl md:rounded-xl p-4 md:p-6 flex-shrink-0 sidebar-enter shadow-lg overflow-y-auto`} style={{height: showMobileSidebar ? "calc(100vh - 80px)" : "calc(100vh - 160px)"}}>
           {/* Bouton Croiser les thèmes */}
           <button
             onClick={() => {
@@ -563,6 +579,7 @@ function App() {
                               : null
                           );
                           setMessages([]);
+                          setShowMobileSidebar(false);
                         }}
                         className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all flex items-center justify-between font-medium text-white ${
                           selectedTheme === theme.name
