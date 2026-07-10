@@ -608,17 +608,17 @@ function App() {
         <div className="flex-1 overflow-y-auto p-8 space-y-6 text-white relative">
           {/* Formules en fond de la zone de discussion */}
           {selectedTheme && (
-            <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
-              <div className="absolute top-10 left-10 text-3xl font-light text-blue-400 whitespace-nowrap">
+            <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
+              <div className="absolute top-10 left-10 text-3xl font-light text-gray-400 whitespace-nowrap">
                 ∫∫∫ f(x,y,z) dxdydz
               </div>
-              <div className="absolute top-1/4 right-20 text-2xl font-light text-purple-400 whitespace-nowrap">
+              <div className="absolute top-1/4 right-20 text-2xl font-light text-gray-500 whitespace-nowrap">
                 ∑ₙ₌₁^∞ aₙ cos(nθ)
               </div>
-              <div className="absolute bottom-32 left-20 text-2xl font-light text-blue-400 whitespace-nowrap">
+              <div className="absolute bottom-32 left-20 text-2xl font-light text-gray-400 whitespace-nowrap">
                 ∫ₐᵇ f(x)g'(x)dx
               </div>
-              <div className="absolute bottom-20 right-32 text-3xl font-light text-purple-400 whitespace-nowrap">
+              <div className="absolute bottom-20 right-32 text-3xl font-light text-gray-500 whitespace-nowrap">
                 e^(iπ) + 1 = 0
               </div>
             </div>
