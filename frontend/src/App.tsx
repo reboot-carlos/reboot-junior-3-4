@@ -314,6 +314,11 @@ function App() {
         }),
       });
 
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Erreur du serveur");
+      }
+
       const data = await res.json();
       const assistantMessage: Message = {
         role: "assistant",
@@ -326,7 +331,7 @@ function App() {
         ...newMessages,
         {
           role: "assistant",
-          content: "Erreur lors de la communication. Veuillez réessayer.",
+          content: `Erreur: ${error instanceof Error ? error.message : "Veuillez réessayer."}`,
         },
       ]);
     } finally {
