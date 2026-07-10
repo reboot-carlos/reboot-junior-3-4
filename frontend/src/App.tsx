@@ -365,9 +365,12 @@ function App() {
       {selectedTheme && (
       <div className="bg-gradient-to-r from-purple-900 to-purple-950 border-b border-purple-800 px-8 py-6 shadow-lg">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
-            <p className="text-sm text-purple-200 mt-1">Tuteur IA Expert</p>
+          <div className="flex items-center gap-4">
+            <Logo size={56} />
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">AI Lesson</h1>
+              <p className="text-sm text-purple-200 mt-1">Tuteur IA Expert</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <button
