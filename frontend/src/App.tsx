@@ -46,6 +46,7 @@ function App() {
   const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [showFormulaEditor, setShowFormulaEditor] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const oscillationTimersRef = useRef<Record<string, ReturnType<typeof setInterval>>>({});
 
   const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
 
@@ -211,22 +212,49 @@ function App() {
     }
   };
 
-  const handleFormulaHover = (id: string, event: React.MouseEvent<HTMLDivElement>) => {
-    const element = event.currentTarget;
-    const rect = element.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+  const handleFormulaHover = (id: string) => {
+    // Arrêter l'oscillation précédente si elle existe
+    if (oscillationTimersRef.current[id]) {
+      clearInterval(oscillationTimersRef.current[id]);
+    }
 
-    const offsetX = (event.clientX - centerX) * -0.5;
-    const offsetY = (event.clientY - centerY) * -0.5;
+    const startTime = Date.now();
+    const oscillationDuration = 2000; // 2 secondes
 
-    setFormulaPositions((prev) => ({
-      ...prev,
-      [id]: { x: offsetX, y: offsetY },
-    }));
+    // Lancer l'oscillation aléatoire
+    const oscillationInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+
+      if (elapsed >= oscillationDuration) {
+        // Arrêter après 2 secondes
+        clearInterval(oscillationInterval);
+        delete oscillationTimersRef.current[id];
+        setFormulaPositions((prev) => ({
+          ...prev,
+          [id]: { x: 0, y: 0 },
+        }));
+      } else {
+        // Oscillation aléatoire
+        const randomX = (Math.random() - 0.5) * 40;
+        const randomY = (Math.random() - 0.5) * 40;
+
+        setFormulaPositions((prev) => ({
+          ...prev,
+          [id]: { x: randomX, y: randomY },
+        }));
+      }
+    }, 50); // Mise à jour toutes les 50ms
+
+    oscillationTimersRef.current[id] = oscillationInterval;
   };
 
   const handleFormulaLeave = (id: string) => {
+    // Arrêter l'oscillation immédiatement
+    if (oscillationTimersRef.current[id]) {
+      clearInterval(oscillationTimersRef.current[id]);
+      delete oscillationTimersRef.current[id];
+    }
+
     setFormulaPositions((prev) => ({
       ...prev,
       [id]: { x: 0, y: 0 },
@@ -316,7 +344,7 @@ function App() {
             ].map((formula) => (
               <div
                 key={formula.id}
-                onMouseMove={(e) => handleFormulaHover(formula.id, e)}
+                onMouseEnter={() => handleFormulaHover(formula.id)}
                 onMouseLeave={() => handleFormulaLeave(formula.id)}
                 style={{
                   position: "absolute",
