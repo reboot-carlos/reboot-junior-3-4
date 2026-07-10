@@ -45,8 +45,9 @@ function App() {
   const [city, setCity] = useState<string>("Paris");
   const [formulaPositions, setFormulaPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [showFormulaEditor, setShowFormulaEditor] = useState(false);
+  const [oscillatingId, setOscillatingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const oscillationTimersRef = useRef<Record<string, number>>({});
+  const oscillationIntervalRef = useRef<number | null>(null);
 
   const levels = ["collégien", "lycéen", "étudiant", "professionnel"];
 
@@ -212,49 +213,53 @@ function App() {
     }
   };
 
-  const handleFormulaHover = (id: string) => {
-    // Arrêter l'oscillation précédente si elle existe
-    if (oscillationTimersRef.current[id]) {
-      clearInterval(oscillationTimersRef.current[id]);
-    }
+  // Gérer l'oscillation avec useEffect
+  useEffect(() => {
+    if (!oscillatingId) return;
 
     const startTime = Date.now();
     const oscillationDuration = 2000; // 2 secondes
 
-    // Lancer l'oscillation aléatoire
-    const oscillationInterval = setInterval(() => {
+    const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
 
       if (elapsed >= oscillationDuration) {
         // Arrêter après 2 secondes
-        clearInterval(oscillationInterval);
-        delete oscillationTimersRef.current[id];
         setFormulaPositions((prev) => ({
           ...prev,
-          [id]: { x: 0, y: 0 },
+          [oscillatingId]: { x: 0, y: 0 },
         }));
+        setOscillatingId(null);
+        clearInterval(interval);
       } else {
         // Oscillation aléatoire
-        const randomX = (Math.random() - 0.5) * 40;
-        const randomY = (Math.random() - 0.5) * 40;
+        const randomX = (Math.random() - 0.5) * 50;
+        const randomY = (Math.random() - 0.5) * 50;
 
         setFormulaPositions((prev) => ({
           ...prev,
-          [id]: { x: randomX, y: randomY },
+          [oscillatingId]: { x: randomX, y: randomY },
         }));
       }
-    }, 50); // Mise à jour toutes les 50ms
+    }, 30); // Mise à jour toutes les 30ms
 
-    oscillationTimersRef.current[id] = oscillationInterval;
+    oscillationIntervalRef.current = interval;
+
+    return () => {
+      if (oscillationIntervalRef.current) {
+        clearInterval(oscillationIntervalRef.current);
+      }
+    };
+  }, [oscillatingId]);
+
+  const handleFormulaHover = (id: string) => {
+    setOscillatingId(id);
   };
 
   const handleFormulaLeave = (id: string) => {
-    // Arrêter l'oscillation immédiatement
-    if (oscillationTimersRef.current[id]) {
-      clearInterval(oscillationTimersRef.current[id]);
-      delete oscillationTimersRef.current[id];
+    if (oscillatingId === id) {
+      setOscillatingId(null);
     }
-
     setFormulaPositions((prev) => ({
       ...prev,
       [id]: { x: 0, y: 0 },
