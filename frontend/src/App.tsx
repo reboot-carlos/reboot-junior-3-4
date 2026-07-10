@@ -4,6 +4,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { FormulaEditor } from "./FormulaEditor";
+import { Logo } from "./Logo";
 
 interface Theme {
   name: string;
@@ -333,6 +334,9 @@ function App() {
           {/* Contenu central */}
           <div className="relative z-10 h-full flex items-center justify-center">
             <div className="text-center px-6">
+              <div className="mb-8 flex justify-center">
+                <Logo size={120} />
+              </div>
               <h1 className="text-7xl md:text-8xl font-bold mb-6 text-white tracking-tight drop-shadow-lg">
                 AI Lesson
               </h1>
