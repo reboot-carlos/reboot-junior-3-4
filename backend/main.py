@@ -229,6 +229,7 @@ THEMES = {
             "Gravure",
             "Poterie et céramique",
             "Performance art",
+            "Illusionnisme",
             "Artistes célèbres",
         ],
         "description": "Arts : création, expression et beauté dans toutes ses formes.",
