@@ -803,8 +803,8 @@ function App() {
 
       {/* Historique Panel */}
       {showHistory && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex fadeIn">
-          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl rounded-r-2xl slideInRight">
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex" style={{animation: 'fadeIn 0.3s ease-out'}}>
+          <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white w-96 max-w-full h-full overflow-y-auto p-8 shadow-2xl rounded-r-2xl" style={{animation: 'slideInRight 0.4s ease-out'}}>
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold tracking-tight text-white">Historique</h2>
               <div className="flex items-center gap-2">
